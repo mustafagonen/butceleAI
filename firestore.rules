@@ -1,0 +1,22 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Kullanıcılar sadece kendi profillerini okuyabilir/yazabilir
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // İşlemler (Gelir/Gider)
+    match /transactions/{transactionId} {
+      // Okuma ve Silme: Sadece işlemin sahibi yapabilir
+      allow read, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+      
+      // Oluşturma: Sadece giriş yapmış kullanıcı kendi adına yapabilir
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      
+      // Güncelleme: Sadece sahibi yapabilir
+      allow update: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+  }
+}
