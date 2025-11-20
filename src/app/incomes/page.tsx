@@ -7,6 +7,7 @@ import { db } from "@/lib/firebase";
 import Button from "@/components/Button";
 import Link from "next/link";
 import { FaPlus, FaSearch, FaFilter } from "react-icons/fa";
+import { formatCurrency } from "@/lib/utils";
 
 interface Transaction {
     id: string;
@@ -91,7 +92,7 @@ export default function IncomesPage() {
                             </div>
                             <div className="text-right">
                                 <div className="font-bold text-green-400">
-                                    +{income.amount.toFixed(2)} ₺
+                                    +{formatCurrency(income.amount)}
                                 </div>
                                 <div className="text-xs text-text-secondary">
                                     {new Date(income.date.seconds * 1000).toLocaleDateString("tr-TR")}

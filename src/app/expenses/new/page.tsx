@@ -8,24 +8,8 @@ import { db } from "@/lib/firebase";
 import Button from "@/components/Button";
 import { FaArrowLeft, FaSave } from "react-icons/fa";
 import Link from "next/link";
-
-const CATEGORIES = [
-    "Market",
-    "Fatura",
-    "Ulaşım",
-    "Sağlık",
-    "Eğlence",
-    "Kredi/Borç",
-    "Taksit",
-    "Diğer"
-];
-
-const PAYMENT_TYPES = [
-    "Nakit",
-    "Kredi Kartı",
-    "Yemek Kartı",
-    "Diğer"
-];
+import { CATEGORIES, PAYMENT_TYPES } from "@/lib/constants";
+import CurrencyInput from "@/components/CurrencyInput";
 
 export default function AddExpensePage() {
     const { user } = useAuth();
@@ -118,16 +102,12 @@ export default function AddExpensePage() {
                 {/* Amount & Date */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-text-secondary">Tutar (TL)</label>
-                        <input
-                            type="number"
-                            required
-                            min="0"
-                            step="0.01"
+                        <label className="text-sm font-medium text-text-secondary">Tutar</label>
+                        <CurrencyInput
                             value={formData.amount}
-                            onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                            className="w-full bg-gray-50 dark:bg-bg-primary border border-gray-300 dark:border-white/10 rounded-xl p-3 text-gray-900 dark:text-white focus:border-accent-primary focus:ring-1 focus:ring-accent-primary outline-none transition-all"
-                            placeholder="0.00"
+                            onChange={(val) => setFormData({ ...formData, amount: val })}
+                            placeholder="0,00"
+                            required
                         />
                     </div>
 
@@ -165,6 +145,6 @@ export default function AddExpensePage() {
                     Kaydet
                 </Button>
             </form>
-        </div >
+        </div>
     );
 }

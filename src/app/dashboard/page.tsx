@@ -4,8 +4,11 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { FaArrowUp, FaArrowDown, FaWallet, FaPiggyBank, FaPercent, FaCalendarAlt, FaList } from "react-icons/fa";
+import { FaArrowUp, FaArrowDown, FaWallet, FaPiggyBank, FaPercent, FaCalendarAlt, FaList, FaPlus, FaMinus } from "react-icons/fa";
 import clsx from "clsx";
+import Link from "next/link";
+import Button from "@/components/Button";
+import { formatCurrency } from "@/lib/utils";
 
 interface Transaction {
     id: string;
@@ -95,14 +98,30 @@ export default function DashboardPage() {
 
     return (
         <div className="space-y-8">
-            {/* Header with Gradient Text */}
-            <div className="flex flex-col gap-1">
-                <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
-                    <span className="bg-clip-text text-transparent bg-gradient-to-r from-text-primary via-accent-primary to-accent-secondary">
-                        Hoş Geldin, {user?.displayName?.split(" ")[0] || "Kullanıcı"}
-                    </span>
-                </h1>
-                <p className="text-text-secondary text-lg">Finansal özgürlüğüne giden yolda bugünkü durumun.</p>
+            {/* Header with Gradient Text & Quick Actions */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+                <div className="flex flex-col gap-1">
+                    <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
+                        <span className="bg-clip-text text-transparent bg-gradient-to-r from-text-primary via-accent-primary to-accent-secondary">
+                            Hoş Geldin, {user?.displayName?.split(" ")[0] || "Kullanıcı"}
+                        </span>
+                    </h1>
+                    <p className="text-text-secondary text-lg">Finansal özgürlüğüne giden yolda bugünkü durumun.</p>
+                </div>
+
+                <div className="flex gap-3 w-full md:w-auto">
+                    <Link href="/incomes/new">
+                        <Button className="gap-2 bg-green-600 hover:bg-green-700 text-white border-none shadow-lg shadow-green-500/20">
+                            <FaPlus /> Yeni Gelir
+                        </Button>
+                    </Link>
+
+                    <Link href="/expenses/new">
+                        <Button className="gap-2 bg-red-600 hover:bg-red-700 text-white border-none shadow-lg shadow-red-500/20">
+                            <FaPlus /> Yeni Harcama
+                        </Button>
+                    </Link>
+                </div>
             </div>
 
             {/* Main Stats Grid - Futuristic Cards */}
@@ -120,7 +139,7 @@ export default function DashboardPage() {
                             </span>
                         </div>
                         <div className="mt-4">
-                            <h3 className="text-3xl font-bold text-text-primary">₺{monthlyIncome.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</h3>
+                            <h3 className="text-3xl font-bold text-text-primary">{formatCurrency(monthlyIncome)}</h3>
                             <p className="text-sm text-text-secondary mt-1">Bu ayki toplam gelir</p>
                         </div>
                     </div>
@@ -139,7 +158,7 @@ export default function DashboardPage() {
                             </span>
                         </div>
                         <div className="mt-4">
-                            <h3 className="text-3xl font-bold text-text-primary">₺{monthlyExpense.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</h3>
+                            <h3 className="text-3xl font-bold text-text-primary">{formatCurrency(monthlyExpense)}</h3>
                             <p className="text-sm text-text-secondary mt-1">Bu ayki toplam harcama</p>
                         </div>
                     </div>
@@ -159,7 +178,7 @@ export default function DashboardPage() {
                         </div>
                         <div className="mt-4">
                             <h3 className={clsx("text-3xl font-bold", monthlySavings >= 0 ? "text-accent-primary" : "text-red-500")}>
-                                ₺{monthlySavings.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}
+                                {formatCurrency(monthlySavings)}
                             </h3>
                             <p className="text-sm text-text-secondary mt-1">Bu ayki net tasarruf</p>
                         </div>
@@ -225,7 +244,7 @@ export default function DashboardPage() {
                                             "font-bold text-xl",
                                             t.type === "income" ? "text-green-500" : "text-red-500"
                                         )}>
-                                            {t.type === "income" ? "+" : "-"}₺{t.amount.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}
+                                            {t.type === "income" ? "+" : "-"}{formatCurrency(t.amount)}
                                         </span>
                                     </div>
                                 ))}
@@ -262,7 +281,7 @@ export default function DashboardPage() {
                                         <div className="w-2 h-2 rounded-full bg-green-500"></div>
                                         <span className="text-gray-300">Toplam Gelir</span>
                                     </div>
-                                    <span className="font-bold text-green-400 text-lg">₺{yearlyIncome.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</span>
+                                    <span className="font-bold text-green-400 text-lg">{formatCurrency(yearlyIncome)}</span>
                                 </div>
 
                                 <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm">
@@ -270,14 +289,14 @@ export default function DashboardPage() {
                                         <div className="w-2 h-2 rounded-full bg-red-500"></div>
                                         <span className="text-gray-300">Toplam Gider</span>
                                     </div>
-                                    <span className="font-bold text-red-400 text-lg">₺{yearlyExpense.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</span>
+                                    <span className="font-bold text-red-400 text-lg">{formatCurrency(yearlyExpense)}</span>
                                 </div>
 
                                 <div className="pt-4 border-t border-white/10">
                                     <div className="flex justify-between items-end">
                                         <span className="text-gray-400 font-medium">Net Tasarruf</span>
                                         <span className={clsx("text-3xl font-bold", yearlySavings >= 0 ? "text-white" : "text-red-400")}>
-                                            ₺{yearlySavings.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}
+                                            {formatCurrency(yearlySavings)}
                                         </span>
                                     </div>
                                 </div>
