@@ -21,10 +21,15 @@ interface Transaction {
     paymentMethod: string;
 }
 
+import ConfirmationModal from "@/components/ConfirmationModal";
+
 export default function ExpensesPage() {
     const { user, loading: authLoading } = useAuth();
     const [expenses, setExpenses] = useState<Transaction[]>([]);
     const [loading, setLoading] = useState(true);
+
+    // Date Filter State
+    const [selectedDate, setSelectedDate] = useState(new Date());
 
     // Filter States
     const [searchTerm, setSearchTerm] = useState("");
@@ -37,10 +42,51 @@ export default function ExpensesPage() {
     const [editForm, setEditForm] = useState<Partial<Transaction>>({});
     const [deletingId, setDeletingId] = useState<string | null>(null);
 
+    // Reset Modal State
+    const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+
     const [error, setError] = useState<string | null>(null);
 
+    const months = [
+        "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
+        "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"
+    ];
+
+    const handleMonthSelect = (index: number) => {
+        const newDate = new Date(selectedDate);
+        newDate.setMonth(index);
+        setSelectedDate(newDate);
+    };
+
+    const handleYearChange = (increment: number) => {
+        const newDate = new Date(selectedDate);
+        newDate.setFullYear(newDate.getFullYear() + increment);
+        setSelectedDate(newDate);
+    };
+
+    const handleResetClick = () => {
+        if (!user || expenses.length === 0) return;
+        setIsResetModalOpen(true);
+    };
+
+    const handleConfirmReset = async () => {
+        try {
+            setLoading(true);
+            // Delete all currently loaded expenses (which are already filtered by month/year in the query)
+            const deletePromises = expenses.map(expense =>
+                deleteDoc(doc(db, "transactions", expense.id))
+            );
+
+            await Promise.all(deletePromises);
+        } catch (error) {
+            console.error("Error resetting month:", error);
+            alert("Sıfırlama işlemi sırasında bir hata oluştu.");
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        console.log("ExpensesPage useEffect:", { authLoading, user: user?.uid });
+        console.log("ExpensesPage useEffect:", { authLoading, user: user?.uid, selectedDate });
         if (authLoading) return;
 
         if (!user) {
@@ -53,10 +99,16 @@ export default function ExpensesPage() {
         setError(null);
 
         try {
+            // Calculate start and end of the selected month
+            const startOfMonth = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
+            const endOfMonth = new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0, 23, 59, 59);
+
             const q = query(
                 collection(db, "transactions"),
                 where("userId", "==", user.uid),
                 where("type", "==", "expense"),
+                where("date", ">=", startOfMonth),
+                where("date", "<=", endOfMonth),
                 orderBy("date", "desc")
             );
 
@@ -83,7 +135,7 @@ export default function ExpensesPage() {
             setError(err.message);
             setLoading(false);
         }
-    }, [user, authLoading]);
+    }, [user, authLoading, selectedDate]);
 
     // Filter Logic
     const filteredExpenses = expenses.filter((expense) => {
@@ -172,6 +224,67 @@ export default function ExpensesPage() {
                 </div>
             </div>
 
+            {/* Month & Year Selector - Single Line */}
+            <div className="glass p-2 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4 overflow-x-auto">
+                <div className="flex items-center gap-4 shrink-0">
+                    {/* Year Selector */}
+                    <div className="flex items-center gap-2 bg-white/5 rounded-lg p-1">
+                        <button
+                            onClick={() => handleYearChange(-1)}
+                            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                        >
+                            &lt;
+                        </button>
+                        <span className="text-lg font-bold px-2">{selectedDate.getFullYear()}</span>
+                        <button
+                            onClick={() => handleYearChange(1)}
+                            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                        >
+                            &gt;
+                        </button>
+                    </div>
+                </div>
+
+                {/* Month List */}
+                <div className="flex flex-1 overflow-x-auto pb-2 md:pb-0 gap-2 no-scrollbar mask-linear-fade">
+                    {months.map((month, index) => {
+                        const isSelected = selectedDate.getMonth() === index;
+                        const isCurrentMonth = new Date().getMonth() === index && new Date().getFullYear() === selectedDate.getFullYear();
+
+                        return (
+                            <button
+                                key={month}
+                                onClick={() => handleMonthSelect(index)}
+                                className={clsx(
+                                    "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap shrink-0",
+                                    isSelected
+                                        ? "bg-accent-primary text-white shadow-lg shadow-accent-primary/25"
+                                        : isCurrentMonth
+                                            ? "border border-accent-primary/50 text-accent-primary bg-accent-primary/5 hover:bg-accent-primary/10"
+                                            : "hover:bg-white/10 text-text-secondary hover:text-text-primary"
+                                )}
+                            >
+                                {month}
+                            </button>
+                        );
+                    })}
+                </div>
+
+                {/* Reset Month Button */}
+                {expenses.length > 0 && (
+                    <div className="shrink-0 border-l border-white/10 pl-4 ml-2">
+                        <button
+                            onClick={handleResetClick}
+                            className="text-red-500 hover:bg-red-500/10 px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                            title="Bu aydaki tüm harcamaları sil"
+                        >
+                            <FaTrash size={14} />
+                            <span className="hidden md:inline">Bu Ayın Tüm Harcamalarını Sil</span>
+                        </button>
+                    </div>
+                )}
+            </div>
+
             {/* Filters & Search */}
             <div className="glass p-4 rounded-xl flex flex-col md:flex-row gap-4 relative z-20">
                 {/* Search */}
@@ -225,7 +338,7 @@ export default function ExpensesPage() {
                 <div className="text-center py-10">Yükleniyor...</div>
             ) : filteredExpenses.length === 0 ? (
                 <div className="text-center py-10 text-text-secondary bg-white/5 rounded-xl border border-white/5">
-                    {expenses.length === 0 ? "Henüz harcama kaydı bulunmuyor." : "Filtrelere uygun kayıt bulunamadı."}
+                    {expenses.length === 0 ? "Bu ay için harcama kaydı bulunmuyor." : "Filtrelere uygun kayıt bulunamadı."}
                 </div>
             ) : (
                 <div className="grid gap-4">
@@ -384,6 +497,16 @@ export default function ExpensesPage() {
                     })}
                 </div>
             )}
+
+            <ConfirmationModal
+                isOpen={isResetModalOpen}
+                onClose={() => setIsResetModalOpen(false)}
+                onConfirm={handleConfirmReset}
+                title="Tüm Harcamaları Sil"
+                message={`${months[selectedDate.getMonth()]} ${selectedDate.getFullYear()} dönemine ait TÜM harcamaları silmek istediğinize emin misiniz? Bu işlem geri alınamaz!`}
+                confirmText="Evet, Sil"
+                variant="danger"
+            />
         </div>
     );
 }

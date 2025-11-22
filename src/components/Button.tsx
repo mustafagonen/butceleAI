@@ -3,7 +3,7 @@ import { twMerge } from "tailwind-merge";
 import clsx from "clsx";
 
 interface ButtonProps {
-    variant?: "primary" | "secondary" | "outline" | "ghost";
+    variant?: "primary" | "secondary" | "outline" | "ghost" | "danger";
     size?: "sm" | "md" | "lg";
     isLoading?: boolean;
 }
@@ -25,6 +25,7 @@ export default function Button<T extends React.ElementType = "button">({
         secondary: "bg-bg-secondary text-text-primary hover:bg-bg-secondary/80",
         outline: "border-2 border-accent-primary text-accent-primary hover:bg-accent-primary/10",
         ghost: "text-text-secondary hover:text-text-primary hover:bg-white/5",
+        danger: "bg-red-500 text-white hover:bg-red-600 shadow-lg shadow-red-500/20",
     };
 
     const sizes = {

@@ -211,9 +211,9 @@ export default function DashboardPage() {
             </div>
 
             {/* Content Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                 {/* Recent Transactions - Glass List */}
-                <div className="lg:col-span-2 space-y-6">
+                <div className="lg:col-span-3 space-y-6">
                     <div className="flex items-center justify-between">
                         <h2 className="text-2xl font-bold flex items-center gap-2">
                             <FaList className="text-accent-primary" />
@@ -276,7 +276,7 @@ export default function DashboardPage() {
                             </div>
 
                             <div className="space-y-6">
-                                <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm">
+                                <div className="flex flex-row items-center justify-between lg:flex-col lg:items-start lg:gap-2 xl:flex-row xl:items-center xl:justify-between p-4 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm">
                                     <div className="flex items-center gap-3">
                                         <div className="w-2 h-2 rounded-full bg-green-500"></div>
                                         <span className="text-gray-300">Toplam Gelir</span>
@@ -284,7 +284,7 @@ export default function DashboardPage() {
                                     <span className="font-bold text-green-400 text-lg">{formatCurrency(yearlyIncome)}</span>
                                 </div>
 
-                                <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm">
+                                <div className="flex flex-row items-center justify-between lg:flex-col lg:items-start lg:gap-2 xl:flex-row xl:items-center xl:justify-between p-4 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm">
                                     <div className="flex items-center gap-3">
                                         <div className="w-2 h-2 rounded-full bg-red-500"></div>
                                         <span className="text-gray-300">Toplam Gider</span>

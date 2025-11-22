@@ -69,7 +69,7 @@ export default function AddExpensePage() {
                                 type="button"
                                 onClick={() => setFormData({ ...formData, category: cat })}
                                 className={`p-3 rounded-xl text-sm font-medium transition-all duration-200 ${formData.category === cat
-                                    ? "bg-accent-primary text-white shadow-lg shadow-accent-primary/25 scale-105"
+                                    ? "bg-accent-primary text-white shadow-lg shadow-accent-primary/25 scale-105 border border-transparent"
                                     : "bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-300 shadow-sm hover:border-accent-primary hover:text-accent-primary"
                                     }`}
                             >
@@ -89,7 +89,7 @@ export default function AddExpensePage() {
                                 type="button"
                                 onClick={() => setFormData({ ...formData, paymentType: type })}
                                 className={`px-6 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${formData.paymentType === type
-                                    ? "bg-accent-secondary text-white shadow-lg shadow-accent-secondary/25 scale-105"
+                                    ? "bg-accent-secondary text-white shadow-lg shadow-accent-secondary/25 scale-105 border border-transparent"
                                     : "bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-300 shadow-sm hover:border-accent-secondary hover:text-accent-secondary"
                                     }`}
                             >
