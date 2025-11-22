@@ -71,7 +71,7 @@ export default function CustomSelect({
             </button>
 
             {isOpen && (
-                <div className="absolute top-full left-0 right-0 mt-2 z-50 overflow-hidden rounded-xl border border-gray-100 dark:border-white/10 bg-white dark:bg-[#1a1a1a] shadow-xl animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="absolute top-full left-0 right-0 mt-2 z-[100] overflow-hidden rounded-xl border border-gray-100 dark:border-white/10 bg-white dark:bg-[#1a1a1a] shadow-xl animate-in fade-in slide-in-from-top-2 duration-200">
                     <div className="max-h-60 overflow-y-auto p-1 custom-scrollbar">
                         <button
                             type="button"

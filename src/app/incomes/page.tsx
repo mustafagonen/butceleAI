@@ -18,31 +18,57 @@ interface Transaction {
 }
 
 export default function IncomesPage() {
-    const { user } = useAuth();
+    const { user, loading: authLoading } = useAuth();
     const [incomes, setIncomes] = useState<Transaction[]>([]);
     const [loading, setLoading] = useState(true);
 
+    const [error, setError] = useState<string | null>(null);
+
     useEffect(() => {
-        if (!user) return;
+        console.log("IncomesPage useEffect:", { authLoading, user: user?.uid });
+        if (authLoading) return;
 
-        const q = query(
-            collection(db, "transactions"),
-            where("userId", "==", user.uid),
-            where("type", "==", "income"),
-            orderBy("date", "desc")
-        );
-
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const data = snapshot.docs.map((doc) => ({
-                id: doc.id,
-                ...doc.data(),
-            })) as Transaction[];
-            setIncomes(data);
+        if (!user) {
+            console.log("No user, stopping loading");
             setLoading(false);
-        });
+            return;
+        }
 
-        return () => unsubscribe();
-    }, [user]);
+        setLoading(true);
+        setError(null);
+
+        try {
+            const q = query(
+                collection(db, "transactions"),
+                where("userId", "==", user.uid),
+                where("type", "==", "income"),
+                orderBy("date", "desc")
+            );
+
+            const unsubscribe = onSnapshot(q,
+                (snapshot) => {
+                    console.log("Snapshot received:", snapshot.size, "docs");
+                    const data = snapshot.docs.map((doc) => ({
+                        id: doc.id,
+                        ...doc.data(),
+                    })) as Transaction[];
+                    setIncomes(data);
+                    setLoading(false);
+                },
+                (err) => {
+                    console.error("Snapshot error:", err);
+                    setError(err.message);
+                    setLoading(false);
+                }
+            );
+
+            return () => unsubscribe();
+        } catch (err: any) {
+            console.error("Query creation error:", err);
+            setError(err.message);
+            setLoading(false);
+        }
+    }, [user, authLoading]);
 
     return (
         <div className="space-y-6">
@@ -71,7 +97,17 @@ export default function IncomesPage() {
             </div>
 
             {/* List */}
-            {loading ? (
+            {error ? (
+                <div className="p-4 bg-red-500/10 border border-red-500/50 rounded-xl text-red-500 text-center">
+                    <p className="font-bold">Bir hata oluştu:</p>
+                    <p className="text-sm">{error}</p>
+                    {error.includes("index") && (
+                        <p className="text-xs mt-2">
+                            Bu hata genellikle eksik veritabanı indeksinden kaynaklanır. Lütfen konsolu kontrol edin ve Firebase konsolunda indeksi oluşturun.
+                        </p>
+                    )}
+                </div>
+            ) : loading ? (
                 <div className="text-center py-10">Yükleniyor...</div>
             ) : incomes.length === 0 ? (
                 <div className="text-center py-10 text-text-secondary">

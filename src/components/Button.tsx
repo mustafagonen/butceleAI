@@ -2,20 +2,22 @@ import React from "react";
 import { twMerge } from "tailwind-merge";
 import clsx from "clsx";
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface ButtonProps {
     variant?: "primary" | "secondary" | "outline" | "ghost";
     size?: "sm" | "md" | "lg";
     isLoading?: boolean;
 }
 
-export default function Button({
+export default function Button<T extends React.ElementType = "button">({
+    as,
     children,
     className,
     variant = "primary",
     size = "md",
     isLoading,
     ...props
-}: ButtonProps) {
+}: ButtonProps & { as?: T } & React.ComponentPropsWithoutRef<T>) {
+    const Component = as || "button";
     const baseStyles = "inline-flex items-center justify-center rounded-xl font-medium transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:pointer-events-none";
 
     const variants = {
@@ -32,7 +34,7 @@ export default function Button({
     };
 
     return (
-        <button
+        <Component
             className={twMerge(clsx(baseStyles, variants[variant], sizes[size], className))}
             disabled={isLoading}
             {...props}
@@ -41,6 +43,6 @@ export default function Button({
                 <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
             ) : null}
             {children}
-        </button>
+        </Component>
     );
 }
