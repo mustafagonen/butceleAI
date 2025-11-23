@@ -2,12 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { collection, query, where, orderBy, onSnapshot } from "firebase/firestore";
+import { collection, query, where, orderBy, onSnapshot, deleteDoc, doc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import Button from "@/components/Button";
 import Link from "next/link";
-import { FaPlus, FaSearch, FaFilter } from "react-icons/fa";
+import { FaPlus, FaSearch, FaEdit, FaTrash, FaSave, FaTimes, FaCheck } from "react-icons/fa";
+import { INCOME_CATEGORIES, PAYMENT_TYPES } from "@/lib/constants";
+import CustomSelect from "@/components/CustomSelect";
+import clsx from "clsx";
 import { formatCurrency } from "@/lib/utils";
+import ConfirmationModal from "@/components/ConfirmationModal";
+import Loader from "@/components/Loader";
 
 interface Transaction {
     id: string;
@@ -15,6 +20,7 @@ interface Transaction {
     amount: number;
     date: any;
     description: string;
+    paymentMethod?: string;
 }
 
 export default function IncomesPage() {
@@ -22,14 +28,67 @@ export default function IncomesPage() {
     const [incomes, setIncomes] = useState<Transaction[]>([]);
     const [loading, setLoading] = useState(true);
 
+    // Date Filter State
+    const [selectedDate, setSelectedDate] = useState(new Date());
+
+    // Filter States
+    const [searchTerm, setSearchTerm] = useState("");
+    const [selectedCategory, setSelectedCategory] = useState("");
+    const [expandedId, setExpandedId] = useState<string | null>(null);
+
+    // Edit/Delete States
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [editForm, setEditForm] = useState<Partial<Transaction>>({});
+    const [deletingId, setDeletingId] = useState<string | null>(null);
+
+    // Reset Modal State
+    const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+
     const [error, setError] = useState<string | null>(null);
 
+    const months = [
+        "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
+        "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"
+    ];
+
+    const handleMonthSelect = (index: number) => {
+        const newDate = new Date(selectedDate);
+        newDate.setMonth(index);
+        setSelectedDate(newDate);
+    };
+
+    const handleYearChange = (increment: number) => {
+        const newDate = new Date(selectedDate);
+        newDate.setFullYear(newDate.getFullYear() + increment);
+        setSelectedDate(newDate);
+    };
+
+    const handleResetClick = () => {
+        if (!user || incomes.length === 0) return;
+        setIsResetModalOpen(true);
+    };
+
+    const handleConfirmReset = async () => {
+        try {
+            setLoading(true);
+            // Delete all currently loaded incomes (which are already filtered by month/year in the query)
+            const deletePromises = incomes.map(income =>
+                deleteDoc(doc(db, "transactions", income.id))
+            );
+
+            await Promise.all(deletePromises);
+            setIsResetModalOpen(false);
+        } catch (error) {
+            console.error("Error resetting month:", error);
+            alert("Sıfırlama işlemi sırasında bir hata oluştu.");
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        console.log("IncomesPage useEffect:", { authLoading, user: user?.uid });
         if (authLoading) return;
 
         if (!user) {
-            console.log("No user, stopping loading");
             setLoading(false);
             return;
         }
@@ -38,16 +97,21 @@ export default function IncomesPage() {
         setError(null);
 
         try {
+            // Calculate start and end of the selected month
+            const startOfMonth = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
+            const endOfMonth = new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0, 23, 59, 59);
+
             const q = query(
                 collection(db, "transactions"),
                 where("userId", "==", user.uid),
                 where("type", "==", "income"),
+                where("date", ">=", startOfMonth),
+                where("date", "<=", endOfMonth),
                 orderBy("date", "desc")
             );
 
             const unsubscribe = onSnapshot(q,
                 (snapshot) => {
-                    console.log("Snapshot received:", snapshot.size, "docs");
                     const data = snapshot.docs.map((doc) => ({
                         id: doc.id,
                         ...doc.data(),
@@ -68,7 +132,74 @@ export default function IncomesPage() {
             setError(err.message);
             setLoading(false);
         }
-    }, [user, authLoading]);
+    }, [user, authLoading, selectedDate]);
+
+    // Filter Logic
+    const filteredIncomes = incomes.filter((income) => {
+        const matchesSearch =
+            (income.description?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+            (income.category?.toLowerCase() || "").includes(searchTerm.toLowerCase());
+
+        const matchesCategory = selectedCategory ? income.category === selectedCategory : true;
+
+        return matchesSearch && matchesCategory;
+    });
+
+    const clearFilters = () => {
+        setSearchTerm("");
+        setSelectedCategory("");
+    };
+
+    const handleEditClick = (income: Transaction) => {
+        setEditingId(income.id);
+        setEditForm({
+            amount: income.amount,
+            category: income.category,
+            description: income.description,
+            paymentMethod: income.paymentMethod
+        });
+    };
+
+    const handleCancelEdit = () => {
+        setEditingId(null);
+        setEditForm({});
+    };
+
+    const handleUpdate = async () => {
+        if (!editingId || !user) return;
+
+        try {
+            const incomeRef = doc(db, "transactions", editingId);
+            await updateDoc(incomeRef, {
+                ...editForm,
+                amount: Number(editForm.amount)
+            });
+            setEditingId(null);
+            setEditForm({});
+        } catch (error) {
+            console.error("Error updating document: ", error);
+            alert("Güncelleme sırasında bir hata oluştu.");
+        }
+    };
+
+    const handleDeleteClick = (id: string) => {
+        setDeletingId(id);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!deletingId) return;
+
+        try {
+            await deleteDoc(doc(db, "transactions", deletingId));
+            setDeletingId(null);
+            if (expandedId === deletingId) {
+                setExpandedId(null);
+            }
+        } catch (error) {
+            console.error("Error deleting document: ", error);
+            alert("Silme işlemi sırasında bir hata oluştu.");
+        }
+    };
 
     return (
         <div className="space-y-6">
@@ -81,19 +212,96 @@ export default function IncomesPage() {
                 </Link>
             </div>
 
+            {/* Month & Year Selector */}
+            <div className="glass p-2 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4 overflow-x-auto">
+                <div className="flex items-center gap-4 shrink-0">
+                    {/* Year Selector */}
+                    <div className="flex items-center gap-2 bg-white/5 rounded-lg p-1">
+                        <button
+                            onClick={() => handleYearChange(-1)}
+                            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                        >
+                            &lt;
+                        </button>
+                        <span className="text-lg font-bold px-2">{selectedDate.getFullYear()}</span>
+                        <button
+                            onClick={() => handleYearChange(1)}
+                            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                        >
+                            &gt;
+                        </button>
+                    </div>
+                </div>
+
+                {/* Month List */}
+                <div className="flex flex-1 overflow-x-auto pb-2 md:pb-0 gap-2 no-scrollbar mask-linear-fade">
+                    {months.map((month, index) => {
+                        const isSelected = selectedDate.getMonth() === index;
+                        const isCurrentMonth = new Date().getMonth() === index && new Date().getFullYear() === selectedDate.getFullYear();
+
+                        return (
+                            <button
+                                key={month}
+                                onClick={() => handleMonthSelect(index)}
+                                className={clsx(
+                                    "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap shrink-0",
+                                    isSelected
+                                        ? "bg-accent-secondary text-white shadow-lg shadow-accent-secondary/25"
+                                        : isCurrentMonth
+                                            ? "border border-accent-secondary/50 text-accent-secondary bg-accent-secondary/5 hover:bg-accent-secondary/10"
+                                            : "hover:bg-white/10 text-text-secondary hover:text-text-primary"
+                                )}
+                            >
+                                {month}
+                            </button>
+                        );
+                    })}
+                </div>
+
+                {/* Reset Month Button */}
+                {incomes.length > 0 && (
+                    <div className="shrink-0 border-l border-white/10 pl-4 ml-2">
+                        <button
+                            onClick={handleResetClick}
+                            className="text-red-500 hover:bg-red-500/10 px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                            title="Bu aydaki tüm gelirleri sil"
+                        >
+                            <FaTrash size={14} />
+                            <span className="hidden md:inline">Bu Ayın Tüm Gelirlerini Sil</span>
+                        </button>
+                    </div>
+                )}
+            </div>
+
             {/* Filters & Search */}
-            <div className="glass p-4 rounded-xl flex gap-4 items-center">
+            <div className="glass p-4 rounded-xl flex flex-col md:flex-row gap-4 relative z-20">
+                {/* Search */}
                 <div className="relative flex-1">
                     <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" />
                     <input
                         type="text"
-                        placeholder="Gelir ara..."
-                        className="w-full bg-transparent border border-white/10 rounded-lg pl-10 pr-4 py-2 focus:border-accent-secondary outline-none transition-colors"
+                        placeholder="Ara (Kategori, Açıklama)..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full bg-white/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl pl-10 pr-4 py-2.5 focus:border-accent-secondary outline-none transition-colors"
                     />
                 </div>
-                <Button variant="secondary" size="sm" className="gap-2">
-                    <FaFilter /> Filtrele
-                </Button>
+
+                {/* Filters */}
+                <div className="flex flex-wrap gap-3">
+                    <CustomSelect
+                        value={selectedCategory}
+                        onChange={setSelectedCategory}
+                        options={INCOME_CATEGORIES.map(c => ({ value: c, label: c }))}
+                        placeholder="Tüm Kategoriler"
+                    />
+
+                    {(searchTerm || selectedCategory) && (
+                        <Button variant="ghost" onClick={clearFilters} className="px-3 h-[42px]">
+                            Temizle
+                        </Button>
+                    )}
+                </div>
             </div>
 
             {/* List */}
@@ -108,36 +316,178 @@ export default function IncomesPage() {
                     )}
                 </div>
             ) : loading ? (
-                <div className="text-center py-10">Yükleniyor...</div>
-            ) : incomes.length === 0 ? (
-                <div className="text-center py-10 text-text-secondary">
-                    Henüz gelir kaydı bulunmuyor.
+                <Loader />
+            ) : filteredIncomes.length === 0 ? (
+                <div className="text-center py-10 text-text-secondary bg-white/5 rounded-xl border border-white/5">
+                    {incomes.length === 0 ? "Bu ay için gelir kaydı bulunmuyor." : "Filtrelere uygun kayıt bulunamadı."}
                 </div>
             ) : (
                 <div className="grid gap-4">
-                    {incomes.map((income) => (
-                        <div key={income.id} className="glass p-4 rounded-xl flex items-center justify-between hover:bg-white/5 transition-colors group">
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center text-green-500 text-xl">
-                                    ₺
+                    {filteredIncomes.map((income) => {
+                        const isExpanded = expandedId === income.id;
+
+                        return (
+                            <div
+                                key={income.id}
+                                onClick={() => setExpandedId(isExpanded ? null : income.id)}
+                                className={clsx(
+                                    "glass rounded-xl transition-all duration-300 cursor-pointer overflow-hidden",
+                                    isExpanded ? "bg-white/10 ring-1 ring-accent-secondary shadow-lg shadow-accent-secondary/10" : "hover:bg-white/5 hover:scale-[1.01] hover:shadow-md"
+                                )}
+                            >
+                                {/* Main Row */}
+                                <div className="p-4 flex items-center justify-between">
+                                    <div className="flex items-center gap-4">
+                                        <div className={clsx(
+                                            "w-12 h-12 rounded-full flex items-center justify-center text-xl shrink-0 transition-colors",
+                                            isExpanded ? "bg-green-500 text-white" : "bg-green-500/10 dark:bg-green-500/20 text-green-600 dark:text-green-500"
+                                        )}>
+                                            ₺
+                                        </div>
+                                        <div className="min-w-0">
+                                            <h3 className="font-bold truncate text-lg">{income.category}</h3>
+                                            <p className="text-sm text-text-secondary">{income.paymentMethod || income.description}</p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right shrink-0">
+                                        <div className="font-bold text-green-500 dark:text-green-400 text-lg">
+                                            +{formatCurrency(income.amount)}
+                                        </div>
+                                        <div className="text-xs text-text-secondary">
+                                            {new Date(income.date.seconds * 1000).toLocaleDateString("tr-TR")}
+                                        </div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h3 className="font-bold">{income.category}</h3>
-                                    <p className="text-sm text-text-secondary">{income.description}</p>
+
+                                {/* Expanded Details */}
+                                <div className={clsx(
+                                    "grid transition-all duration-300 ease-in-out bg-black/5 dark:bg-white/5",
+                                    isExpanded ? "grid-rows-[1fr] opacity-100 border-t border-gray-100 dark:border-white/5" : "grid-rows-[0fr] opacity-0"
+                                )}>
+                                    <div className="overflow-hidden">
+                                        <div className="p-4">
+                                            {editingId === income.id ? (
+                                                <div className="space-y-3">
+                                                    <div className="grid grid-cols-2 gap-3">
+                                                        <input
+                                                            type="number"
+                                                            value={editForm.amount}
+                                                            onChange={(e) => setEditForm({ ...editForm, amount: parseFloat(e.target.value) })}
+                                                            className="w-full bg-white/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm"
+                                                            placeholder="Tutar"
+                                                        />
+                                                        <CustomSelect
+                                                            value={editForm.category || ""}
+                                                            onChange={(val) => setEditForm({ ...editForm, category: val })}
+                                                            options={INCOME_CATEGORIES.map(c => ({ value: c, label: c }))}
+                                                            placeholder="Kategori"
+                                                        />
+                                                    </div>
+                                                    <input
+                                                        type="text"
+                                                        value={editForm.description || ""}
+                                                        onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                                                        className="w-full bg-white/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm"
+                                                        placeholder="Açıklama"
+                                                    />
+                                                    <CustomSelect
+                                                        value={editForm.paymentMethod || ""}
+                                                        onChange={(val) => setEditForm({ ...editForm, paymentMethod: val })}
+                                                        options={PAYMENT_TYPES.map(t => ({ value: t, label: t }))}
+                                                        placeholder="Ödeme Yöntemi"
+                                                    />
+                                                    <div className="flex justify-end gap-2 pt-2">
+                                                        <Button variant="ghost" size="sm" onClick={handleCancelEdit}>
+                                                            İptal
+                                                        </Button>
+                                                        <Button size="sm" onClick={handleUpdate} className="gap-2 bg-accent-secondary">
+                                                            <FaSave /> Kaydet
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="flex justify-between items-start">
+                                                    <div className="space-y-3 text-sm flex-1">
+                                                        {income.description && (
+                                                            <div>
+                                                                <span className="block text-xs font-medium text-text-secondary uppercase tracking-wider mb-1">Açıklama</span>
+                                                                <p className="text-text-primary">{income.description}</p>
+                                                            </div>
+                                                        )}
+                                                        <div className="flex flex-wrap gap-4 text-xs text-text-secondary pt-2">
+                                                            <span>İşlem ID: {income.id.slice(0, 8)}...</span>
+                                                            <span>{new Date(income.date.seconds * 1000).toLocaleString("tr-TR")}</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex items-center gap-2 ml-4">
+                                                        {deletingId === income.id ? (
+                                                            <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-5">
+                                                                <span className="text-xs text-red-500 font-medium">Silinsin mi?</span>
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handleConfirmDelete();
+                                                                    }}
+                                                                    className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                                                                >
+                                                                    <FaCheck size={14} />
+                                                                </button>
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setDeletingId(null);
+                                                                    }}
+                                                                    className="p-2 bg-gray-200 dark:bg-zinc-700 text-gray-600 dark:text-zinc-300 rounded-lg hover:bg-gray-300 dark:hover:bg-zinc-600 transition-colors"
+                                                                >
+                                                                    <FaTimes size={14} />
+                                                                </button>
+                                                            </div>
+                                                        ) : (
+                                                            <>
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handleEditClick(income);
+                                                                    }}
+                                                                    className="p-2 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                                                                    title="Düzenle"
+                                                                >
+                                                                    <FaEdit size={16} />
+                                                                </button>
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handleDeleteClick(income.id);
+                                                                    }}
+                                                                    className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                                                    title="Sil"
+                                                                >
+                                                                    <FaTrash size={16} />
+                                                                </button>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <div className="text-right">
-                                <div className="font-bold text-green-400">
-                                    +{formatCurrency(income.amount)}
-                                </div>
-                                <div className="text-xs text-text-secondary">
-                                    {new Date(income.date.seconds * 1000).toLocaleDateString("tr-TR")}
-                                </div>
-                            </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             )}
+
+            <ConfirmationModal
+                isOpen={isResetModalOpen}
+                onClose={() => setIsResetModalOpen(false)}
+                onConfirm={handleConfirmReset}
+                title="Tüm Gelirleri Sil"
+                message={`${months[selectedDate.getMonth()]} ${selectedDate.getFullYear()} dönemine ait TÜM gelirleri silmek istediğinize emin misiniz? Bu işlem geri alınamaz!`}
+                confirmText="Evet, Sil"
+                variant="danger"
+            />
         </div>
     );
 }

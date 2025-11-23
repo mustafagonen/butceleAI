@@ -7,6 +7,7 @@ import { db } from "@/lib/firebase";
 import { FaArrowUp, FaArrowDown, FaWallet, FaPiggyBank, FaPercent, FaCalendarAlt, FaList, FaPlus, FaMinus } from "react-icons/fa";
 import clsx from "clsx";
 import Link from "next/link";
+import Loader from "@/components/Loader";
 import Button from "@/components/Button";
 import { formatCurrency } from "@/lib/utils";
 
@@ -53,7 +54,7 @@ export default function DashboardPage() {
         return () => unsubscribe();
     }, [user]);
 
-    if (loading) return <div className="flex justify-center items-center min-h-[50vh]">Yükleniyor...</div>;
+    if (loading) return <Loader />;
 
     // --- Calculations ---
     const now = new Date();

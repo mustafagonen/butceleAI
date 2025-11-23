@@ -2,6 +2,7 @@ export const CATEGORIES = [
     "Market",
     "Fatura",
     "Ulaşım",
+    "Kira",
     "Sağlık",
     "Eğlence",
     "Kredi/Borç",
@@ -18,5 +19,16 @@ export const PAYMENT_TYPES = [
     "Banka Kartı",
     "Havale/EFT",
     "Yemek Kartı",
+    "Diğer"
+];
+
+export const INCOME_CATEGORIES = [
+    "Maaş",
+    "Prim",
+    "Kira Geliri",
+    "Yatırım",
+    "Freelance",
+    "Satış",
+    "Geri Ödeme",
     "Diğer"
 ];

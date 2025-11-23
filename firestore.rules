@@ -18,5 +18,12 @@ service cloud.firestore {
       // Güncelleme: Sadece sahibi yapabilir
       allow update: if request.auth != null && resource.data.userId == request.auth.uid;
     }
+
+    // Varlıklar (Portföy)
+    match /assets/{assetId} {
+      allow read, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
   }
 }

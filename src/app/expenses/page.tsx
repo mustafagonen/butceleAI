@@ -22,6 +22,7 @@ interface Transaction {
 }
 
 import ConfirmationModal from "@/components/ConfirmationModal";
+import Loader from "@/components/Loader";
 
 export default function ExpensesPage() {
     const { user, loading: authLoading } = useAuth();
@@ -335,7 +336,7 @@ export default function ExpensesPage() {
                     )}
                 </div>
             ) : loading ? (
-                <div className="text-center py-10">Yükleniyor...</div>
+                <Loader />
             ) : filteredExpenses.length === 0 ? (
                 <div className="text-center py-10 text-text-secondary bg-white/5 rounded-xl border border-white/5">
                     {expenses.length === 0 ? "Bu ay için harcama kaydı bulunmuyor." : "Filtrelere uygun kayıt bulunamadı."}

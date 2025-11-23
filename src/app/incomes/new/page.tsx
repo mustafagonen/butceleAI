@@ -75,9 +75,9 @@ export default function AddIncomePage() {
                                 key={cat}
                                 type="button"
                                 onClick={() => setFormData({ ...formData, category: cat })}
-                                className={`p-3 rounded-xl text-sm font-medium transition-all duration-200 ${formData.category === cat
-                                    ? "bg-accent-secondary text-white shadow-lg shadow-accent-secondary/25 scale-105"
-                                    : "bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-300 shadow-sm hover:border-accent-secondary hover:text-accent-secondary"
+                                className={`p-3 rounded-xl text-sm font-medium transition-all duration-200 border ${formData.category === cat
+                                    ? "border-accent-secondary bg-accent-secondary text-white shadow-lg shadow-accent-secondary/25"
+                                    : "border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 text-gray-700 dark:text-gray-300 shadow-sm hover:border-accent-secondary hover:text-accent-secondary"
                                     }`}
                             >
                                 {cat}

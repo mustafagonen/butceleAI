@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
@@ -9,6 +10,7 @@ import { FaWallet, FaMoon, FaSun, FaRocket, FaSignOutAlt, FaUser } from "react-i
 export default function Navbar() {
     const { theme, setTheme } = useTheme();
     const { user, logout } = useAuth();
+    const pathname = usePathname();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -56,9 +58,36 @@ export default function Navbar() {
                 <div className="flex items-center gap-6">
                     {user ? (
                         <>
-                            <Link href="/expenses" className="hidden md:block hover:text-accent-primary transition-colors">Harcamalar</Link>
-                            <Link href="/incomes" className="hidden md:block hover:text-accent-primary transition-colors">Gelirler</Link>
-                            <Link href="/dashboard" className="hidden md:block hover:text-accent-primary transition-colors">Panel</Link>
+                            <Link
+                                href="/expenses"
+                                className={`hidden md:block hover:text-accent-primary transition-colors ${pathname?.startsWith("/expenses") ? "text-accent-primary" : ""}`}
+                            >
+                                Harcamalar
+                            </Link>
+                            <Link
+                                href="/incomes"
+                                className={`hidden md:block hover:text-accent-primary transition-colors ${pathname?.startsWith("/incomes") ? "text-accent-primary" : ""}`}
+                            >
+                                Gelirler
+                            </Link>
+                            <Link
+                                href="/summary"
+                                className={`hidden md:block hover:text-accent-primary transition-colors ${pathname?.startsWith("/summary") ? "text-accent-primary" : ""}`}
+                            >
+                                Özet
+                            </Link>
+                            <Link
+                                href="/portfolio"
+                                className={`hidden md:block hover:text-accent-primary transition-colors ${pathname?.startsWith("/portfolio") ? "text-accent-primary" : ""}`}
+                            >
+                                Portföyüm
+                            </Link>
+                            <Link
+                                href="/dashboard"
+                                className={`hidden md:block hover:text-accent-primary transition-colors ${pathname === "/dashboard" ? "text-accent-primary" : ""}`}
+                            >
+                                Panel
+                            </Link>
                         </>
                     ) : null}
 
