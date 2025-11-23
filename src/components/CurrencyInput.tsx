@@ -9,6 +9,7 @@ interface CurrencyInputProps {
     placeholder?: string;
     className?: string;
     required?: boolean;
+    autoFocus?: boolean;
 }
 
 export default function CurrencyInput({
@@ -17,6 +18,7 @@ export default function CurrencyInput({
     placeholder = "0,00",
     className,
     required = false,
+    autoFocus = false,
 }: CurrencyInputProps) {
     const [displayValue, setDisplayValue] = useState("");
 
@@ -83,6 +85,7 @@ export default function CurrencyInput({
                 onBlur={handleBlur}
                 placeholder={placeholder}
                 required={required}
+                autoFocus={autoFocus}
                 className={clsx(
                     "w-full bg-gray-50 dark:bg-bg-primary border border-gray-300 dark:border-white/10 rounded-xl p-3 text-gray-900 dark:text-white focus:border-accent-primary focus:ring-1 focus:ring-accent-primary outline-none transition-all",
                     className

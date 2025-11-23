@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import Button from "@/components/Button";
 import { FaArrowLeft, FaSave } from "react-icons/fa";
@@ -12,6 +12,7 @@ import CustomSelect from "@/components/CustomSelect";
 import SearchableSelect from "@/components/SearchableSelect";
 import CurrencyInput from "@/components/CurrencyInput";
 import { BIST_STOCKS, TEFAS_FUNDS } from "@/lib/market-data";
+import Loader from "@/components/Loader";
 
 const ASSET_TYPES = [
     { value: "tl", label: "Nakit (TL)" },
@@ -37,33 +38,80 @@ const GOLD_TYPES = [
     { value: "ceyrek", label: "Çeyrek Altın" }
 ];
 
-export default function AddAssetPage() {
+export default function EditAssetPage({ params }: { params: Promise<{ id: string }> }) {
     const { user } = useAuth();
     const router = useRouter();
-    const [loading, setLoading] = useState(false);
+    const resolvedParams = use(params);
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
 
     const [formData, setFormData] = useState({
-        type: "tl",
+        type: "",
         name: "",
         code: "",
         amount: "",
-        subType: "" // For gold types or specific details
+        subType: ""
     });
 
     const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchAsset = async () => {
+            if (!user) return;
+
+            try {
+                const docRef = doc(db, "assets", resolvedParams.id);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data.userId !== user.uid) {
+                        router.push("/portfolio");
+                        return;
+                    }
+
+                    // Determine subType for gold if possible, or just load data
+                    let subType = "";
+                    if (data.type === "gold" && data.name.includes("(")) {
+                        const match = data.name.match(/\((.*?)\)/);
+                        if (match) {
+                            const foundType = GOLD_TYPES.find(t => t.label === match[1]);
+                            if (foundType) subType = foundType.value;
+                        }
+                    }
+
+                    setFormData({
+                        type: data.type === "bes" && TEFAS_FUNDS.find(f => f.value === data.code) ? "fund" : data.type,
+                        name: data.name,
+                        code: data.code || "",
+                        amount: data.amount.toString(),
+                        subType: subType
+                    });
+                } else {
+                    setError("Varlık bulunamadı.");
+                }
+            } catch (err) {
+                console.error("Error fetching asset:", err);
+                setError("Varlık yüklenirken hata oluştu.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchAsset();
+    }, [user, resolvedParams.id, router]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!user) return;
 
-        setLoading(true);
+        setSaving(true);
         setError(null);
 
         try {
             // Construct the asset object
             const assetData: any = {
-                userId: user.uid,
-                type: formData.type === "fund" ? "bes" : formData.type, // Map 'fund' to 'bes' structure or keep separate if needed. Using 'bes' logic for funds for now as they are similar (TEFAS)
+                type: formData.type === "fund" ? "bes" : formData.type,
                 amount: parseFloat(formData.amount),
                 updatedAt: serverTimestamp()
             };
@@ -74,7 +122,7 @@ export default function AddAssetPage() {
                 assetData.code = "TRY";
             } else if (formData.type === "gold") {
                 assetData.name = formData.subType ? `Altın (${GOLD_TYPES.find(t => t.value === formData.subType)?.label})` : "Altın";
-                assetData.code = "GA"; // Default to Gram Altın code for fetcher
+                assetData.code = "GA";
             } else if (formData.type === "stock") {
                 const stock = BIST_STOCKS.find(s => s.value === formData.code);
                 assetData.name = stock ? stock.label.split(" - ")[1] : formData.code;
@@ -83,30 +131,32 @@ export default function AddAssetPage() {
                 const fund = TEFAS_FUNDS.find(f => f.value === formData.code);
                 assetData.name = fund ? fund.label : formData.code;
                 assetData.code = formData.code;
-                assetData.type = "bes"; // Treat as BES/Fund for now in backend
+                assetData.type = "bes";
             } else if (formData.type === "real_estate") {
                 assetData.name = formData.name;
-                assetData.code = "RE"; // Real Estate code
-                // For Real Estate, amount is the estimated value (similar to TL)
+                assetData.code = "RE";
                 assetData.amount = parseFloat(formData.amount);
             } else {
                 assetData.name = formData.name;
                 assetData.code = formData.code.toUpperCase();
             }
 
-            await addDoc(collection(db, "assets"), assetData);
+            const docRef = doc(db, "assets", resolvedParams.id);
+            await updateDoc(docRef, assetData);
             router.push("/portfolio");
         } catch (error: any) {
-            console.error("Error adding asset:", error);
+            console.error("Error updating asset:", error);
             if (error.code === "permission-denied") {
                 setError("Yetki hatası: Lütfen veritabanı kurallarının güncellendiğinden emin olun.");
             } else {
                 setError("Bir hata oluştu. Lütfen tekrar deneyin.");
             }
         } finally {
-            setLoading(false);
+            setSaving(false);
         }
     };
+
+    if (loading) return <Loader />;
 
     return (
         <div className="max-w-2xl mx-auto">
@@ -114,7 +164,7 @@ export default function AddAssetPage() {
                 <Link href="/portfolio" className="p-2 hover:bg-white/10 rounded-full transition-colors">
                     <FaArrowLeft />
                 </Link>
-                <h1 className="text-3xl font-bold">Yeni Varlık Ekle</h1>
+                <h1 className="text-3xl font-bold">Varlık Düzenle</h1>
             </div>
 
             <form onSubmit={handleSubmit} className="bg-white dark:bg-white/5 backdrop-blur-xl p-8 rounded-2xl space-y-6 shadow-2xl border border-gray-200 dark:border-white/10">
@@ -125,15 +175,16 @@ export default function AddAssetPage() {
                     </div>
                 )}
 
-                {/* Asset Type */}
+                {/* Asset Type - Disabled for edit to simplify logic, or enable if needed but might require reset */}
                 <div className="space-y-2">
                     <label className="text-sm font-medium text-text-secondary">Varlık Türü</label>
                     <CustomSelect
                         value={formData.type}
-                        onChange={(val) => setFormData({ ...formData, type: val, name: "", code: "", amount: "" })}
+                        onChange={(val) => setFormData({ ...formData, type: val })}
                         options={ASSET_TYPES}
                         placeholder="Seçiniz"
                     />
+                    <p className="text-xs text-text-secondary">Tür değişikliği yapabilirsiniz ancak alanları dikkatli kontrol ediniz.</p>
                 </div>
 
                 {/* Dynamic Fields */}
@@ -303,10 +354,10 @@ export default function AddAssetPage() {
                     type="submit"
                     className="w-full gap-2"
                     size="lg"
-                    isLoading={loading}
+                    isLoading={saving}
                 >
                     <FaSave />
-                    Kaydet
+                    Güncelle
                 </Button>
             </form>
         </div>

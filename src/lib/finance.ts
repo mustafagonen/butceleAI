@@ -10,19 +10,17 @@ export interface AssetPrice {
 
 export async function getGoldPrice(): Promise<number> {
     try {
-        // Using a public free API for Gold prices in TR (example)
-        // If this fails, we return a fallback
-        const response = await fetch("https://api.genelpara.com/embed/altin.json");
+        // Fetch from our own API route to avoid CORS issues
+        const response = await fetch("/api/gold-price");
         const data = await response.json();
-        // Assuming data structure, usually GA (Gram Altın) is the key
-        // This is a best-effort guess at a free API structure
-        if (data && data.GA && data.GA.satis) {
-            return parseFloat(data.GA.satis);
+
+        if (data && data.price) {
+            return data.price;
         }
-        throw new Error("Invalid data format");
+        throw new Error("Invalid API response");
     } catch (error) {
         console.warn("Failed to fetch gold price, using fallback:", error);
-        return 2950.00; // Fallback price
+        return 5550.00; // Fallback price (Nov 2025)
     }
 }
 
