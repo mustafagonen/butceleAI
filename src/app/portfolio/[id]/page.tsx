@@ -110,7 +110,7 @@ export default function EditAssetPage({ params }: { params: Promise<{ id: string
 
         try {
             // Construct the asset object
-            const assetData: any = {
+            const assetData: Record<string, unknown> = {
                 type: formData.type === "fund" ? "bes" : formData.type,
                 amount: parseFloat(formData.amount),
                 updatedAt: serverTimestamp()
@@ -144,9 +144,9 @@ export default function EditAssetPage({ params }: { params: Promise<{ id: string
             const docRef = doc(db, "assets", resolvedParams.id);
             await updateDoc(docRef, assetData);
             router.push("/portfolio");
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Error updating asset:", error);
-            if (error.code === "permission-denied") {
+            if (error instanceof Error && 'code' in error && (error as { code: string }).code === "permission-denied") {
                 setError("Yetki hatası: Lütfen veritabanı kurallarının güncellendiğinden emin olun.");
             } else {
                 setError("Bir hata oluştu. Lütfen tekrar deneyin.");

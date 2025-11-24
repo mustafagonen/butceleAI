@@ -32,7 +32,7 @@ interface Debt {
     amount: number; // Original amount (e.g. 100 USD)
     currentValue?: number; // Calculated TL value
     unitPrice?: number; // Exchange rate
-    dueDate?: any;
+    dueDate?: { seconds: number };
 }
 
 export default function PortfolioPage() {

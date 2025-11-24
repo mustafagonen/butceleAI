@@ -53,12 +53,12 @@ export async function parseStatement(formData: FormData): Promise<ParseResult> {
         const text = await new Promise<string>((resolve, reject) => {
             const pdfParser = new PDFParser(null, 1); // 1 = text content only
 
-            pdfParser.on("pdfParser_dataError", (errData: any) => {
+            pdfParser.on("pdfParser_dataError", (errData: { parserError: unknown }) => {
                 console.error("PDF Parser Error:", errData.parserError);
                 reject(new Error("PDF okunamadı: " + errData.parserError));
             });
 
-            pdfParser.on("pdfParser_dataReady", (pdfData: any) => {
+            pdfParser.on("pdfParser_dataReady", (_pdfData: unknown) => {
                 // pdf2json returns URL-encoded text, we need to decode it
                 // The raw text content is usually in pdfParser.getRawTextContent()
                 // But since we are in the callback, we can use the instance method if we had access,
@@ -354,8 +354,8 @@ export async function parseStatement(formData: FormData): Promise<ParseResult> {
 
         return { success: true, data: Object.values(grouped), statementTotal };
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("PDF Parse Error Full Details:", error);
-        return { success: false, error: error.message || "PDF okunamadı." };
+        return { success: false, error: error instanceof Error ? error.message : "PDF okunamadı." };
     }
 }

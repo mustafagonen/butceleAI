@@ -16,7 +16,7 @@ interface Transaction {
     id: string;
     category: string;
     amount: number;
-    date: any;
+    date: { seconds: number };
     description: string;
     paymentMethod: string;
 }
@@ -131,9 +131,9 @@ export default function ExpensesPage() {
             );
 
             return () => unsubscribe();
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Query creation error:", err);
-            setError(err.message);
+            setError(err instanceof Error ? err.message : 'An error occurred');
             setLoading(false);
         }
     }, [user, authLoading, selectedDate]);

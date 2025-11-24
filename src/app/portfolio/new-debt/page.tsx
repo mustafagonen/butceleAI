@@ -56,9 +56,9 @@ export default function AddDebtPage() {
 
             await addDoc(collection(db, "debts"), debtData);
             router.push("/portfolio");
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Error adding debt:", error);
-            if (error.code === "permission-denied") {
+            if (error instanceof Error && 'code' in error && (error as { code: string }).code === "permission-denied") {
                 setError("Yetki hatası: Lütfen veritabanı kurallarının güncellendiğinden emin olun.");
             } else {
                 setError("Bir hata oluştu. Lütfen tekrar deneyin.");
