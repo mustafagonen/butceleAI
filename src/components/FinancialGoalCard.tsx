@@ -60,13 +60,7 @@ export default function FinancialGoalCard({ totalWealth }: FinancialGoalCardProp
         return Math.min(progress, 100);
     };
 
-    const getMessage = (progress: number) => {
-        if (progress >= 100) return "Tebrikler! Finansal özgürlüğüne ulaştın! 🎉";
-        if (progress >= 75) return "Neredeyse oradasın, son düzlük! 🚀";
-        if (progress >= 50) return "Yarıyı geçtin, hedefe çok az kaldı! ⭐";
-        if (progress >= 25) return "İyi gidiyorsun, yarılamak üzeresin! 📈";
-        return "Yolun başındasın, harika bir başlangıç! 🌱";
-    };
+
 
     if (loading) return null; // Or a skeleton
 
@@ -127,7 +121,7 @@ export default function FinancialGoalCard({ totalWealth }: FinancialGoalCardProp
                         </button>
                     </div>
                 ) : (
-                    <div className="mb-6">
+                    <div>
                         <div className="flex justify-between items-end mb-2">
                             <span className="text-3xl font-bold text-text-primary">{formatCurrency(totalWealth)}</span>
                             <span className="text-sm text-text-secondary mb-1">/ {formatCurrency(goal || 0)}</span>
@@ -145,11 +139,7 @@ export default function FinancialGoalCard({ totalWealth }: FinancialGoalCardProp
                     </div>
                 )}
 
-                {!isEditing && (
-                    <p className="text-sm font-medium text-accent-primary">
-                        {getMessage(progress)}
-                    </p>
-                )}
+
             </div>
         </div>
     );

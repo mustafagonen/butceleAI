@@ -70,3 +70,21 @@ export async function getBesPrice(fundCode: string): Promise<number> {
     // Simulating for now.
     return 1.5 + Math.random() * 0.1;
 }
+export async function getCurrencyPrice(currency: "USD" | "EUR"): Promise<number> {
+    try {
+        // In a real app, use a free API like ExchangeRate-API or similar
+        // For demo, we'll use a fallback or a simple fetch if available
+        const response = await fetch(`https://api.exchangerate-api.com/v4/latest/${currency}`);
+        const data = await response.json();
+
+        if (data && data.rates && data.rates.TRY) {
+            return data.rates.TRY;
+        }
+        throw new Error("Rate not found");
+    } catch (error) {
+        console.warn(`Failed to fetch currency price for ${currency}, using fallback:`, error);
+        if (currency === "USD") return 34.50; // Fallback Nov 2025
+        if (currency === "EUR") return 36.20; // Fallback Nov 2025
+        return 0;
+    }
+}

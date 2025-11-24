@@ -52,8 +52,7 @@ export default function SummaryPage() {
         setLoading(true);
         const q = query(
             collection(db, "transactions"),
-            where("userId", "==", user.uid),
-            orderBy("date", "desc")
+            where("userId", "==", user.uid)
         );
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -61,6 +60,14 @@ export default function SummaryPage() {
                 id: doc.id,
                 ...doc.data(),
             })) as Transaction[];
+
+            // Sort by date descending (client-side)
+            data.sort((a, b) => {
+                const dateA = new Date(a.date.seconds * 1000).getTime();
+                const dateB = new Date(b.date.seconds * 1000).getTime();
+                return dateB - dateA;
+            });
+
             setTransactions(data);
             setLoading(false);
         });

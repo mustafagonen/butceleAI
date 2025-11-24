@@ -30,6 +30,10 @@ export default function Navbar() {
     };
 
     useEffect(() => {
+        setIsDropdownOpen(false);
+    }, [pathname, user]);
+
+    useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
                 setIsDropdownOpen(false);
@@ -48,8 +52,8 @@ export default function Navbar() {
     }, [isDropdownOpen]);
 
     return (
-        <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-white/10 px-6 py-4">
-            <div className="max-w-7xl mx-auto flex items-center justify-between">
+        <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-white/10">
+            <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
                 <Link href="/" className="flex items-center gap-2 text-2xl font-bold text-accent-primary">
                     <FaWallet />
                     <span className="tracking-tighter">BUTCELE</span>
@@ -108,11 +112,7 @@ export default function Navbar() {
                                 className="flex items-center gap-3 hover:opacity-80 transition-opacity"
                             >
                                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-accent-primary to-accent-secondary flex items-center justify-center text-white font-bold shadow-lg border-2 border-white/20">
-                                    {user.photoURL ? (
-                                        <img src={user.photoURL} alt={user.displayName || "User"} className="w-full h-full rounded-full object-cover" />
-                                    ) : (
-                                        <span>{getInitials(user.displayName || "User")}</span>
-                                    )}
+                                    <span>{getInitials(user.displayName || "User")}</span>
                                 </div>
                                 <span className="hidden sm:block font-medium">{user.displayName}</span>
                             </button>
