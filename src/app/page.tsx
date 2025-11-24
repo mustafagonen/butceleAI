@@ -40,13 +40,15 @@ export default function Home() {
 
       <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
         <Link href="/login">
-          <Button size="lg" className="gap-2">
+          <Button size="lg" className="gap-2 h-14">
             Hemen Başla <FaArrowRight />
           </Button>
         </Link>
-        <Button variant="outline" size="lg" className="gap-2">
-          Özellikleri Keşfet <FaChartPie />
-        </Button>
+        <Link href="#features">
+          <Button variant="outline" size="lg" className="gap-2 h-14">
+            Özellikleri Keşfet <FaChartPie />
+          </Button>
+        </Link>
       </div>
 
       {/* Feature Cards */}

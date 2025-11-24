@@ -209,11 +209,23 @@ export default function IncomesPage() {
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <h1 className="text-3xl font-bold">Gelirlerim</h1>
-                <Link href="/incomes/new">
-                    <Button className="gap-2 bg-accent-secondary shadow-accent-secondary/20">
-                        <FaPlus /> Yeni Gelir
-                    </Button>
-                </Link>
+                <div className="flex gap-2">
+                    {incomes.length > 0 && (
+                        <Button
+                            variant="secondary"
+                            onClick={handleResetClick}
+                            className="gap-2 text-red-500"
+                            title="Bu aydaki tüm gelirleri sil"
+                        >
+                            <FaTrash /> <span className="hidden sm:inline">Bu Ayın Gelirlerini Sil</span>
+                        </Button>
+                    )}
+                    <Link href="/incomes/new">
+                        <Button className="gap-2 bg-accent-secondary shadow-accent-secondary/20">
+                            <FaPlus /> Yeni Gelir
+                        </Button>
+                    </Link>
+                </div>
             </div>
 
             {/* Month & Year Selector */}
@@ -261,20 +273,6 @@ export default function IncomesPage() {
                         );
                     })}
                 </div>
-
-                {/* Reset Month Button */}
-                {incomes.length > 0 && (
-                    <div className="shrink-0 border-l border-white/10 pl-4 ml-2">
-                        <button
-                            onClick={handleResetClick}
-                            className="text-red-500 hover:bg-red-500/10 px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
-                            title="Bu aydaki tüm gelirleri sil"
-                        >
-                            <FaTrash size={14} />
-                            <span className="hidden md:inline">Bu Ayın Tüm Gelirlerini Sil</span>
-                        </button>
-                    </div>
-                )}
             </div>
 
             {/* Filters & Search */}
