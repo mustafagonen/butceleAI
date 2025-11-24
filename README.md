@@ -2,8 +2,6 @@
 
 <div align="center">
 
-![Butcele Logo](public/logo.png)
-
 **Take Your Expenses to the Future**
 
 [🚀 Live Demo](https://butcele.netlify.app/) | [📖 Documentation](#features) | [🐛 Report Bug](https://github.com/mustafagonen/butceleAI/issues)
