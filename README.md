@@ -1,12 +1,12 @@
-# 💰 Butcele - Modern Bütçe Yönetim Uygulaması
+# 💰 Butcele - Modern Budget Management App
 
 <div align="center">
 
 ![Butcele Logo](public/logo.svg)
 
-**Harcamalarını Geleceğe Taşı**
+**Take Your Expenses to the Future**
 
-[🚀 Demo](https://butcele.netlify.app/) | [📖 Dokümantasyon](#özellikler) | [🐛 Hata Bildir](https://github.com/mustafagonen/butceleAI/issues)
+[🚀 Live Demo](https://butcele.netlify.app/) | [📖 Documentation](#features) | [🐛 Report Bug](https://github.com/mustafagonen/butceleAI/issues)
 
 [![Next.js](https://img.shields.io/badge/Next.js-16.0-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19.2-61DAFB?style=for-the-badge&logo=react)](https://react.dev/)
@@ -18,84 +18,83 @@
 
 ---
 
-## 📋 İçindekiler
+## 📋 Table of Contents
 
-- [Hakkında](#-hakkında)
-- [Özellikler](#-özellikler)
-- [Demo](#-demo)
-- [Teknolojiler](#-teknolojiler)
-- [Kurulum](#-kurulum)
-- [Kullanım](#-kullanım)
-- [Ekran Görüntüleri](#-ekran-görüntüleri)
-- [Katkıda Bulunma](#-katkıda-bulunma)
-- [Lisans](#-lisans)
-
----
-
-## 🎯 Hakkında
-
-**Butcele**, gelir ve giderlerinizi modern, hızlı ve şık bir arayüzle yönetmenizi sağlayan yeni nesil bir bütçe takip uygulamasıdır. Finansal özgürlüğünüze giden yolda en iyi yardımcınız!
-
-### Neden Butcele?
-
-- 🎨 **Modern ve Şık Tasarım** - Gözünüzü yormayan, kullanımı keyifli arayüz
-- ⚡ **Hızlı ve Performanslı** - Next.js 16 ile optimize edilmiş performans
-- 🌙 **Çoklu Tema Desteği** - Light, Dark ve Futuristic modlar
-- 📱 **Responsive Tasarım** - Her cihazda mükemmel görünüm
-- 🔐 **Güvenli** - Firebase Authentication ile korumalı verileriniz
-- 📊 **Detaylı Analizler** - Harcamalarınızı kategorilere göre analiz edin
-- 💳 **Ekstre Yükleme** - PDF banka ekstrelerini otomatik olarak işleyin
-- 💼 **Portföy Yönetimi** - Varlıklarınızı (altın, döviz, hisse, kripto) takip edin
+- [About](#-about)
+- [Features](#-features)
+- [Live Demo](#-live-demo)
+- [Tech Stack](#-tech-stack)
+- [Installation](#-installation)
+- [Usage](#-usage)
+- [Contributing](#-contributing)
+- [License](#-license)
 
 ---
 
-## ✨ Özellikler
+## 🎯 About
 
-### 💸 Gelir & Gider Yönetimi
-- ✅ Hızlı gelir/gider ekleme
-- ✅ Kategori bazlı filtreleme
-- ✅ Ödeme yöntemi takibi
-- ✅ Detaylı arama ve filtreleme
-- ✅ Aylık bazda görüntüleme
-- ✅ Toplu silme işlemleri
+**Butcele** is a next-generation budget tracking application that allows you to manage your income and expenses with a modern, fast, and elegant interface. Your best companion on the road to financial freedom!
 
-### 📄 Ekstre İşleme
-- ✅ PDF banka ekstresi yükleme
-- ✅ Otomatik işlem çıkarma
-- ✅ Akıllı kategori eşleştirme
-- ✅ Manuel düzenleme imkanı
+### Why Butcele?
 
-### 💼 Portföy Takibi
-- ✅ Altın, Döviz, BES, Hisse, Kripto takibi
-- ✅ Güncel piyasa fiyatları
-- ✅ Otomatik değer hesaplama
-- ✅ Borç yönetimi
-- ✅ Finansal özgürlük hedefi
+- 🎨 **Modern & Elegant Design** - Eye-friendly, enjoyable interface
+- ⚡ **Fast & Performant** - Optimized performance with Next.js 16
+- 🌙 **Multi-Theme Support** - Light, Dark, and Futuristic modes
+- 📱 **Responsive Design** - Perfect view on every device
+- 🔐 **Secure** - Your data protected with Firebase Authentication
+- 📊 **Detailed Analytics** - Analyze your expenses by categories
+- 💳 **Statement Upload** - Automatically process PDF bank statements
+- 💼 **Portfolio Management** - Track your assets (gold, forex, stocks, crypto)
 
-### 📊 Dashboard & Raporlama
-- ✅ Aylık özet görünümü
-- ✅ Gelir/gider karşılaştırması
-- ✅ Kategori bazlı grafikler
-- ✅ Trend analizleri
+---
 
-### 🎨 Kullanıcı Deneyimi
-- ✅ 3 farklı tema (Light, Dark, Futuristic)
-- ✅ Smooth animasyonlar
-- ✅ Glassmorphism tasarım
+## ✨ Features
+
+### 💸 Income & Expense Management
+- ✅ Quick income/expense entry
+- ✅ Category-based filtering
+- ✅ Payment method tracking
+- ✅ Advanced search and filtering
+- ✅ Monthly view
+- ✅ Bulk delete operations
+
+### 📄 Statement Processing
+- ✅ PDF bank statement upload
+- ✅ Automatic transaction extraction
+- ✅ Smart category matching
+- ✅ Manual editing capability
+
+### 💼 Portfolio Tracking
+- ✅ Track Gold, Forex, BES, Stocks, Crypto
+- ✅ Real-time market prices
+- ✅ Automatic value calculation
+- ✅ Debt management
+- ✅ Financial freedom goal
+
+### 📊 Dashboard & Reporting
+- ✅ Monthly summary view
+- ✅ Income/expense comparison
+- ✅ Category-based charts
+- ✅ Trend analysis
+
+### 🎨 User Experience
+- ✅ 3 different themes (Light, Dark, Futuristic)
+- ✅ Smooth animations
+- ✅ Glassmorphism design
 - ✅ Responsive layout
-- ✅ Türkçe dil desteği
+- ✅ Turkish language support
 
 ---
 
-## 🚀 Demo
+## 🚀 Live Demo
 
-Uygulamayı hemen deneyin: **[https://butcele.netlify.app/](https://butcele.netlify.app/)**
+Try the app now: **[https://butcele.netlify.app/](https://butcele.netlify.app/)**
 
-> **Not:** Demo için Google hesabınızla giriş yapabilirsiniz.
+> **Note:** You can sign in with your Google account for the demo.
 
 ---
 
-## 🛠 Teknolojiler
+## 🛠 Tech Stack
 
 ### Frontend
 - **[Next.js 16](https://nextjs.org/)** - React framework
@@ -119,32 +118,32 @@ Uygulamayı hemen deneyin: **[https://butcele.netlify.app/](https://butcele.netl
 
 ---
 
-## 📦 Kurulum
+## 📦 Installation
 
-### Gereksinimler
+### Prerequisites
 
 - Node.js 18+ 
-- npm veya yarn
-- Firebase projesi
+- npm or yarn
+- Firebase project
 
-### Adımlar
+### Steps
 
-1. **Projeyi klonlayın**
+1. **Clone the repository**
 ```bash
 git clone https://github.com/mustafagonen/butceleAI.git
 cd butceleAI
 ```
 
-2. **Bağımlılıkları yükleyin**
+2. **Install dependencies**
 ```bash
 npm install
-# veya
+# or
 yarn install
 ```
 
-3. **Firebase yapılandırması**
+3. **Firebase configuration**
 
-`src/lib/firebase.ts` dosyasında Firebase config bilgilerinizi güncelleyin:
+Update your Firebase config in `src/lib/firebase.ts`:
 
 ```typescript
 const firebaseConfig = {
@@ -157,97 +156,77 @@ const firebaseConfig = {
 };
 ```
 
-4. **Firestore kurallarını ayarlayın**
+4. **Set up Firestore rules**
 
-`firestore.rules` dosyasındaki kuralları Firebase Console'dan yükleyin.
+Upload the rules from `firestore.rules` file via Firebase Console.
 
-5. **Geliştirme sunucusunu başlatın**
+5. **Start the development server**
 ```bash
 npm run dev
-# veya
+# or
 yarn dev
 ```
 
-Uygulama [http://localhost:3000](http://localhost:3000) adresinde çalışacaktır.
+The app will be running at [http://localhost:3000](http://localhost:3000).
 
 ---
 
-## 🎮 Kullanım
+## 🎮 Usage
 
-### İlk Adımlar
+### Getting Started
 
-1. **Giriş Yapın** - Google hesabınızla giriş yapın
-2. **Gelir/Gider Ekleyin** - İlk işlemlerinizi ekleyin
-3. **Portföy Oluşturun** - Varlıklarınızı kaydedin
-4. **Hedef Belirleyin** - Finansal özgürlük hedefinizi ayarlayın
+1. **Sign In** - Sign in with your Google account
+2. **Add Income/Expenses** - Add your first transactions
+3. **Create Portfolio** - Register your assets
+4. **Set Goals** - Set your financial freedom goal
 
-### Ekstre Yükleme
+### Statement Upload
 
-1. Harcamalar sayfasından "Ekstre Yükle" butonuna tıklayın
-2. PDF banka ekstrenizi seçin
-3. Otomatik çıkarılan işlemleri gözden geçirin
-4. Gerekirse düzenleyin ve kaydedin
+1. Click "Upload Statement" button from expenses page
+2. Select your PDF bank statement
+3. Review automatically extracted transactions
+4. Edit if necessary and save
 
-### Portföy Yönetimi
+### Portfolio Management
 
-1. Portföy sayfasından "Yeni Varlık" ekleyin
-2. Varlık türünü seçin (Altın, Döviz, BES, vb.)
-3. Miktar ve detayları girin
-4. Güncel değerleri otomatik olarak görün
-
----
-
-## 📸 Ekran Görüntüleri
-
-<div align="center">
-
-### 🏠 Ana Sayfa
-![Ana Sayfa](docs/screenshots/home.png)
-
-### 📊 Dashboard
-![Dashboard](docs/screenshots/dashboard.png)
-
-### 💸 Harcamalar
-![Harcamalar](docs/screenshots/expenses.png)
-
-### 💼 Portföy
-![Portföy](docs/screenshots/portfolio.png)
-
-</div>
+1. Add "New Asset" from portfolio page
+2. Select asset type (Gold, Forex, BES, etc.)
+3. Enter amount and details
+4. View current values automatically
 
 ---
 
-## 🤝 Katkıda Bulunma
+## 🤝 Contributing
 
-Katkılarınızı bekliyoruz! Lütfen şu adımları izleyin:
+Contributions are welcome! Please follow these steps:
 
-1. Projeyi fork edin
-2. Feature branch oluşturun (`git checkout -b feature/amazing-feature`)
-3. Değişikliklerinizi commit edin (`git commit -m 'feat: Add amazing feature'`)
-4. Branch'inizi push edin (`git push origin feature/amazing-feature`)
-5. Pull Request oluşturun
+1. Fork the project
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'feat: Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-### Commit Mesajları
+### Commit Messages
 
-Conventional Commits formatını kullanıyoruz:
+We use Conventional Commits format:
 
-- `feat:` - Yeni özellik
-- `fix:` - Hata düzeltme
-- `docs:` - Dokümantasyon
-- `style:` - Kod formatı
-- `refactor:` - Kod iyileştirme
-- `test:` - Test ekleme
-- `chore:` - Genel işler
-
----
-
-## 📝 Lisans
-
-Bu proje MIT lisansı altında lisanslanmıştır. Detaylar için [LICENSE](LICENSE) dosyasına bakın.
+- `feat:` - New feature
+- `fix:` - Bug fix
+- `docs:` - Documentation
+- `style:` - Code formatting
+- `refactor:` - Code refactoring
+- `test:` - Adding tests
+- `chore:` - General tasks
 
 ---
 
-## 👨‍💻 Geliştirici
+## 📝 License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+---
+
+## 👨‍💻 Developer
 
 **Mustafa Gönen**
 
@@ -256,18 +235,18 @@ Bu proje MIT lisansı altında lisanslanmıştır. Detaylar için [LICENSE](LICE
 
 ---
 
-## 🙏 Teşekkürler
+## 🙏 Acknowledgments
 
-- [Next.js](https://nextjs.org/) ekibine harika framework için
-- [Firebase](https://firebase.google.com/) ekibine backend altyapısı için
-- [Tailwind CSS](https://tailwindcss.com/) ekibine muhteşem CSS framework'ü için
-- Tüm açık kaynak katkıda bulunanlara
+- [Next.js](https://nextjs.org/) team for the amazing framework
+- [Firebase](https://firebase.google.com/) team for the backend infrastructure
+- [Tailwind CSS](https://tailwindcss.com/) team for the awesome CSS framework
+- All open source contributors
 
 ---
 
 <div align="center">
 
-**⭐ Projeyi beğendiyseniz yıldız vermeyi unutmayın! ⭐**
+**⭐ Don't forget to star the project if you like it! ⭐**
 
 Made with ❤️ in Turkey
 
