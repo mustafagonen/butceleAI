@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![Butcele Logo](public/logo.svg)
+![Butcele Logo](public/logo.png)
 
 **Take Your Expenses to the Future**
 
