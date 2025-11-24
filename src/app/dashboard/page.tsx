@@ -15,7 +15,7 @@ interface Transaction {
     id: string;
     type: "income" | "expense";
     amount: number;
-    date: any;
+    date: { seconds: number };
     category: string;
     description?: string;
 }
@@ -37,8 +37,8 @@ export default function DashboardPage() {
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const data = snapshot.docs.map((doc) => ({
                 id: doc.id,
-                ...doc.data(),
-            })) as Transaction[];
+                ...(doc.data() as Omit<Transaction, "id">),
+            }));
 
             // Sort by date descending
             data.sort((a, b) => {

@@ -18,7 +18,7 @@ interface Transaction {
     id: string;
     category: string;
     amount: number;
-    date: any;
+    date: { seconds: number };
     description: string;
     paymentMethod?: string;
 }
@@ -114,8 +114,8 @@ export default function IncomesPage() {
                 (snapshot) => {
                     const data = snapshot.docs.map((doc) => ({
                         id: doc.id,
-                        ...doc.data(),
-                    })) as Transaction[];
+                        ...(doc.data() as Omit<Transaction, "id">),
+                    }));
                     setIncomes(data);
                     setLoading(false);
                 },
@@ -127,9 +127,13 @@ export default function IncomesPage() {
             );
 
             return () => unsubscribe();
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Query creation error:", err);
-            setError(err.message);
+            if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError("An unknown error occurred");
+            }
             setLoading(false);
         }
     }, [user, authLoading, selectedDate]);

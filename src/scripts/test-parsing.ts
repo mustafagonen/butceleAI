@@ -1,6 +1,4 @@
 
-import { formatCurrency } from "../lib/utils";
-
 // Mock data based on user input
 const rawText = `
 25/08/2025 LCW ANK ANATOLIUM ANKARA TRTR 752.98
@@ -14,6 +12,12 @@ const rawText = `
 28/08/2025 FILE MAMAK / ANKARA 1.444,34 TL
 28/08/2025 ANKA GROSS 249.5030/08/2025  ANSERA KAFETERYA GI
 `;
+
+interface Transaction {
+    date: string;
+    description: string;
+    amount: number;
+}
 
 // Copied logic from statement-actions.ts (simplified for testing)
 function fixTurkishChars(str: string): string {
@@ -59,7 +63,7 @@ function fixTurkishChars(str: string): string {
 }
 function parse(text: string) {
     const lines = text.split("\n");
-    const transactions: any[] = [];
+    const transactions: Transaction[] = [];
     let pendingDate: string | null = null;
     let pendingDescription: string = "";
 
@@ -171,10 +175,10 @@ function parse(text: string) {
 
 const result = parse(rawText);
 console.log(`Parsed Transactions: ${result.length}`);
-result.forEach((t: any) => {
+result.forEach((t: Transaction) => {
     console.log(`${t.date} | ${t.description} | ${t.amount}`);
 });
 
 // Calculate total
-const total = result.reduce((sum: number, t: any) => sum + t.amount, 0);
+const total = result.reduce((sum: number, t: Transaction) => sum + t.amount, 0);
 console.log("Total Amount:", total);
