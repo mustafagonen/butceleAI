@@ -4,6 +4,8 @@ import "./globals.css";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { AuthProvider } from "@/context/AuthContext";
 import MainLayout from "@/components/MainLayout";
+import GoogleAnalytics from "@/components/GoogleAnalytics";
+import { Suspense } from "react";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -20,6 +22,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className} suppressHydrationWarning={true}>
+        <Suspense fallback={null}>
+          <GoogleAnalytics />
+        </Suspense>
         <ThemeProvider>
           <AuthProvider>
             <MainLayout>
