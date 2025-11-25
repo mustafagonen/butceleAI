@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { collection, query, where, onSnapshot, orderBy } from "firebase/firestore";
+import { useTheme } from "@/context/ThemeContext";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { FaArrowUp, FaArrowDown, FaWallet, FaLightbulb, FaChartPie, FaExclamationTriangle, FaTrophy } from "react-icons/fa";
+import { FaArrowUp, FaArrowDown, FaWallet, FaLightbulb, FaChartPie, FaExclamationTriangle, FaTrophy, FaUtensils, FaShoppingBag, FaCar, FaHome, FaGamepad, FaHeartbeat, FaGraduationCap, FaPlane } from "react-icons/fa";
 import clsx from "clsx";
 import Loader from "@/components/Loader";
 import { formatCurrency } from "@/lib/utils";
+import AnalysisCharts from "@/components/summary/AnalysisCharts";
 
 interface Transaction {
     id: string;
@@ -33,6 +35,7 @@ interface Insight {
 
 export default function SummaryPage() {
     const { user, loading: authLoading } = useAuth();
+    const { privacyMode } = useTheme();
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedDate, setSelectedDate] = useState(new Date());
@@ -129,9 +132,22 @@ export default function SummaryPage() {
         .sort(([, a], [, b]) => b - a)
         .slice(0, 3);
 
+    // Monthly Trends (Last 6 Months)
+    const monthlyTrends = Array.from({ length: 6 }, (_, i) => {
+        const d = new Date(selectedDate);
+        d.setMonth(d.getMonth() - (5 - i));
+        const stats = getStatsForMonth(d);
+        return {
+            month: months[d.getMonth()].slice(0, 3),
+            income: stats.income,
+            expense: stats.expense
+        };
+    });
+
     // --- Insights Logic ---
     const generateInsights = (): Insight[] => {
         const insights: Insight[] = [];
+        const fmt = (val: number) => privacyMode ? "****" : formatCurrency(val);
 
         // 1. Balance Check
         if (currentStats.balance > 0) {
@@ -139,14 +155,14 @@ export default function SummaryPage() {
                 type: "positive",
                 icon: <FaTrophy className="text-yellow-500" />,
                 title: "Tebrikler!",
-                message: `Bu ay gelirleriniz giderlerinizden ${formatCurrency(currentStats.balance)} daha fazla. Harika gidiyorsunuz!`
+                message: `Bu ay gelirleriniz giderlerinizden ${fmt(currentStats.balance)} daha fazla. Harika gidiyorsunuz!`
             });
         } else if (currentStats.balance < 0) {
             insights.push({
                 type: "warning",
                 icon: <FaExclamationTriangle className="text-red-500" />,
                 title: "Dikkat!",
-                message: `Bu ay giderleriniz gelirlerinizi ${formatCurrency(Math.abs(currentStats.balance))} aştı. Harcamalarınızı gözden geçirmek isteyebilirsiniz.`
+                message: `Bu ay giderleriniz gelirlerinizi ${fmt(Math.abs(currentStats.balance))} aştı. Harcamalarınızı gözden geçirmek isteyebilirsiniz.`
             });
         }
 
@@ -160,19 +176,34 @@ export default function SummaryPage() {
                     type: "negative",
                     icon: <FaArrowUp className="text-red-400" />,
                     title: "Harcamalar Arttı",
-                    message: `Geçen aya göre harcamalarınız %${Math.abs(percent).toFixed(1)} (${formatCurrency(diff)}) arttı.`
+                    message: `Geçen aya göre harcamalarınız %${Math.abs(percent).toFixed(1)} (${fmt(diff)}) arttı.`
                 });
             } else if (diff < 0) {
                 insights.push({
                     type: "positive",
                     icon: <FaArrowDown className="text-green-400" />,
                     title: "Tasarruf Ettiniz",
-                    message: `Geçen aya göre %${Math.abs(percent).toFixed(1)} (${formatCurrency(Math.abs(diff))}) daha az harcadınız. Süper!`
+                    message: `Geçen aya göre %${Math.abs(percent).toFixed(1)} (${fmt(Math.abs(diff))}) daha az harcadınız. Süper!`
                 });
             }
         }
 
-        // 3. Income Comparison
+        // 3. Top Spending Category Insight
+        if (topExpenses.length > 0) {
+            const [topCategory, topAmount] = topExpenses[0];
+            const percentOfTotal = (topAmount / currentStats.expense) * 100;
+
+            if (percentOfTotal > 30) {
+                insights.push({
+                    type: "warning",
+                    icon: <FaChartPie className="text-orange-400" />,
+                    title: "Yüksek Kategori Harcaması",
+                    message: `Bu ay harcamalarınızın %${percentOfTotal.toFixed(0)}'si "${topCategory}" kategorisine gitti. Bu kategoriyi biraz kısabilir misiniz?`
+                });
+            }
+        }
+
+        // 4. Income Comparison
         if (prevStats.income > 0 && currentStats.income > prevStats.income) {
             insights.push({
                 type: "positive",
@@ -234,14 +265,18 @@ export default function SummaryPage() {
                                 <FaArrowUp size={60} />
                             </div>
                             <p className="text-text-secondary text-sm font-medium">Toplam Gelir</p>
-                            <p className="text-2xl font-bold text-green-500 mt-1">+{formatCurrency(currentStats.income)}</p>
+                            <p className="text-2xl font-bold text-green-500 mt-1">
+                                {privacyMode ? "****" : `+${formatCurrency(currentStats.income)}`}
+                            </p>
                         </div>
                         <div className="glass p-5 rounded-2xl border-l-4 border-red-500 relative overflow-hidden group">
                             <div className="absolute right-0 top-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                                 <FaArrowDown size={60} />
                             </div>
                             <p className="text-text-secondary text-sm font-medium">Toplam Gider</p>
-                            <p className="text-2xl font-bold text-red-500 mt-1">-{formatCurrency(currentStats.expense)}</p>
+                            <p className="text-2xl font-bold text-red-500 mt-1">
+                                {privacyMode ? "****" : `-${formatCurrency(currentStats.expense)}`}
+                            </p>
                         </div>
                         <div className={clsx(
                             "glass p-5 rounded-2xl border-l-4 relative overflow-hidden group",
@@ -252,38 +287,18 @@ export default function SummaryPage() {
                             </div>
                             <p className="text-text-secondary text-sm font-medium">Net Durum</p>
                             <p className={clsx("text-2xl font-bold mt-1", currentStats.balance >= 0 ? "text-blue-500" : "text-orange-500")}>
-                                {currentStats.balance >= 0 ? "+" : ""}{formatCurrency(currentStats.balance)}
+                                {privacyMode ? "****" : `${currentStats.balance >= 0 ? "+" : ""}${formatCurrency(currentStats.balance)}`}
                             </p>
                         </div>
                     </div>
 
-                    {/* Financial Health Bar */}
-                    <div className="glass p-6 rounded-2xl">
-                        <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-                            <FaChartPie className="text-accent-primary" />
-                            Finansal Denge
-                        </h3>
-                        <div className="relative h-6 bg-gray-200 dark:bg-white/5 rounded-full overflow-hidden flex">
-                            {currentStats.income > 0 && (
-                                <div
-                                    className="h-full bg-green-500 transition-all duration-1000"
-                                    style={{ width: `${(currentStats.income / (currentStats.income + currentStats.expense)) * 100}%` }}
-                                />
-                            )}
-                            {currentStats.expense > 0 && (
-                                <div
-                                    className="h-full bg-red-500 transition-all duration-1000"
-                                    style={{ width: `${(currentStats.expense / (currentStats.income + currentStats.expense)) * 100}%` }}
-                                />
-                            )}
-                        </div>
-                        <div className="flex justify-between mt-2 text-sm font-medium">
-                            <span className="text-green-500">%{(currentStats.income / (currentStats.income + currentStats.expense) * 100 || 0).toFixed(0)} Gelir</span>
-                            <span className="text-red-500">%{(currentStats.expense / (currentStats.income + currentStats.expense) * 100 || 0).toFixed(0)} Gider</span>
-                        </div>
-                    </div>
+                    {/* Charts */}
+                    <AnalysisCharts
+                        expenseCategories={expenseCategories}
+                        monthlyTrends={monthlyTrends}
+                    />
 
-                    {/* Top Expenses */}
+                    {/* Top Expenses List */}
                     <div className="glass p-6 rounded-2xl">
                         <h3 className="text-lg font-bold mb-4">En Çok Harcanan Kategoriler</h3>
                         {topExpenses.length > 0 ? (
@@ -292,7 +307,9 @@ export default function SummaryPage() {
                                     <div key={category}>
                                         <div className="flex justify-between text-sm mb-1">
                                             <span className="font-medium">{category}</span>
-                                            <span className="text-text-secondary">{formatCurrency(amount)}</span>
+                                            <span className="text-text-secondary">
+                                                {privacyMode ? "****" : formatCurrency(amount)}
+                                            </span>
                                         </div>
                                         <div className="h-2 bg-gray-200 dark:bg-white/5 rounded-full overflow-hidden">
                                             <div

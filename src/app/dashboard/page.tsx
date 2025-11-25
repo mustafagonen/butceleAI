@@ -103,7 +103,7 @@ export default function DashboardPage() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
                 <div className="flex flex-col gap-1">
                     <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
-                        <span className="bg-clip-text text-transparent bg-gradient-to-r from-text-primary via-accent-primary to-accent-secondary">
+                        <span className="bg-clip-text text-transparent bg-gradient-to-r from-green-500 via-blue-500 to-blue-600">
                             Hoş Geldin, {user?.displayName?.split(" ")[0] || "Kullanıcı"}
                         </span>
                     </h1>
@@ -273,30 +273,30 @@ export default function DashboardPage() {
                         <div className="relative z-10 space-y-8">
                             <div>
                                 <p className="text-gray-400 text-sm uppercase tracking-wider font-medium">{currentYear} ÖZETİ</p>
-                                <h3 className="text-3xl font-bold mt-1">Finansal Durum</h3>
+                                <h3 className="text-xl font-bold mt-1">Finansal Durum</h3>
                             </div>
 
                             <div className="space-y-6">
-                                <div className="flex flex-row items-center justify-between lg:flex-col lg:items-start lg:gap-2 xl:flex-row xl:items-center xl:justify-between p-4 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm">
+                                <div className="flex flex-col items-start gap-2 p-4 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm">
                                     <div className="flex items-center gap-3">
                                         <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                                        <span className="text-gray-300">Toplam Gelir</span>
+                                        <span className="text-gray-300 text-sm">Toplam Gelir</span>
                                     </div>
                                     <span className="font-bold text-green-400 text-lg">{formatCurrency(yearlyIncome)}</span>
                                 </div>
 
-                                <div className="flex flex-row items-center justify-between lg:flex-col lg:items-start lg:gap-2 xl:flex-row xl:items-center xl:justify-between p-4 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm">
+                                <div className="flex flex-col items-start gap-2 p-4 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm">
                                     <div className="flex items-center gap-3">
                                         <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                                        <span className="text-gray-300">Toplam Gider</span>
+                                        <span className="text-gray-300 text-sm">Toplam Gider</span>
                                     </div>
                                     <span className="font-bold text-red-400 text-lg">{formatCurrency(yearlyExpense)}</span>
                                 </div>
 
                                 <div className="pt-4 border-t border-white/10">
-                                    <div className="flex justify-between items-end">
-                                        <span className="text-gray-400 font-medium">Net Tasarruf</span>
-                                        <span className={clsx("text-3xl font-bold", yearlySavings >= 0 ? "text-white" : "text-red-400")}>
+                                    <div className="flex flex-col gap-2">
+                                        <span className="text-gray-400 font-medium text-sm">Net Tasarruf</span>
+                                        <span className={clsx("text-2xl font-bold", yearlySavings >= 0 ? "text-white" : "text-red-400")}>
                                             {formatCurrency(yearlySavings)}
                                         </span>
                                     </div>

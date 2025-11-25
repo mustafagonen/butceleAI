@@ -6,6 +6,7 @@ import { useState, useRef, useEffect } from "react";
 import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
 import { FaWallet, FaMoon, FaSun, FaRocket, FaSignOutAlt, FaUser } from "react-icons/fa";
+import PrivacyToggle from "@/components/PrivacyToggle";
 
 export default function Navbar() {
     const { theme, setTheme } = useTheme();
@@ -54,7 +55,7 @@ export default function Navbar() {
     return (
         <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-white/10">
             <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-                <Link href="/" className="flex items-center gap-2 text-2xl font-bold text-accent-primary">
+                <Link href={user ? "/dashboard" : "/"} className="flex items-center gap-2 text-2xl font-bold text-accent-primary">
                     <FaWallet />
                     <span className="tracking-tighter">BUTCELE</span>
                 </Link>
@@ -104,6 +105,8 @@ export default function Navbar() {
                         {theme === "dark" && <FaMoon />}
                         {theme === "futuristic" && <FaRocket />}
                     </button>
+
+                    <PrivacyToggle />
 
                     {user ? (
                         <div className="relative" ref={dropdownRef}>
