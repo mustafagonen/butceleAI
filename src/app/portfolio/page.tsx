@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { collection, query, where, onSnapshot, deleteDoc, doc } from "firebase/firestore";
+import { collection, query, where, onSnapshot, deleteDoc, doc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { FaPlus, FaWallet, FaCoins, FaChartLine, FaBitcoin, FaPiggyBank, FaTrash, FaEdit, FaBuilding, FaCreditCard, FaMoneyBillWave, FaUserFriends, FaQuestionCircle, FaDollarSign, FaEuroSign } from "react-icons/fa";
 import Link from "next/link";
@@ -29,10 +29,19 @@ interface Debt {
     assetType?: "tl" | "gold" | "foreign_currency";
     currencyCode?: string;
     name: string;
-    amount: number; // Original amount (e.g. 100 USD)
+    amount: number; // Original amount (e.g. 100 USD) or total of all installments
     currentValue?: number; // Calculated TL value
     unitPrice?: number; // Exchange rate
     dueDate?: { seconds: number };
+    isInstallment?: boolean;
+    installmentCount?: number;
+    firstInstallmentDate?: { seconds: number };
+    installments?: Array<{
+        amount: number;
+        date: { seconds: number };
+        isPaid?: boolean;
+    }>;
+    remainingAmount?: number; // Calculated: total - paid installments
 }
 
 export default function PortfolioPage() {
@@ -152,9 +161,18 @@ export default function PortfolioPage() {
                 console.error("Debt price fetch error", e);
             }
 
-            const value = debt.amount * price;
+            // Calculate remaining amount (total - paid installments)
+            let remainingAmount = debt.amount;
+            if (debt.isInstallment && debt.installments) {
+                const paidAmount = debt.installments
+                    .filter(inst => inst.isPaid)
+                    .reduce((sum, inst) => sum + inst.amount, 0);
+                remainingAmount = debt.amount - paidAmount;
+            }
+
+            const value = remainingAmount * price;
             newTotalDebt += value;
-            return { ...debt, unitPrice: price, currentValue: value };
+            return { ...debt, unitPrice: price, currentValue: value, remainingAmount };
         }));
 
         setAssets(updatedAssets);
@@ -173,6 +191,24 @@ export default function PortfolioPage() {
             setDeleteType(null);
         } catch (error) {
             console.error("Error deleting item:", error);
+        }
+    };
+
+    const handleInstallmentPayment = async (debtId: string, installmentIndex: number, isPaid: boolean) => {
+        try {
+            const debt = debts.find(d => d.id === debtId);
+            if (!debt?.installments) return;
+
+            const updatedInstallments = debt.installments.map((inst, idx) =>
+                idx === installmentIndex ? { ...inst, isPaid } : inst
+            );
+
+            await updateDoc(doc(db, "debts", debtId), {
+                installments: updatedInstallments,
+                updatedAt: serverTimestamp()
+            });
+        } catch (error) {
+            console.error("Error updating installment:", error);
         }
     };
 
@@ -388,6 +424,14 @@ export default function PortfolioPage() {
                                                     <h3 className="font-bold text-lg text-text-primary">{debt.name}</h3>
                                                     <div className="flex flex-wrap gap-2 text-xs font-medium opacity-80">
                                                         <span>{getTypeLabel(debt.type)}</span>
+                                                        {debt.isInstallment && (
+                                                            <>
+                                                                <span className="hidden sm:inline">•</span>
+                                                                <span className="bg-blue-500/20 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded">
+                                                                    Taksitli
+                                                                </span>
+                                                            </>
+                                                        )}
                                                         {debt.assetType && debt.assetType !== "tl" && (
                                                             <>
                                                                 <span className="hidden sm:inline">•</span>
@@ -397,10 +441,72 @@ export default function PortfolioPage() {
                                                             </>
                                                         )}
                                                     </div>
-                                                    {debt.dueDate && (
+                                                    {debt.dueDate && !debt.isInstallment && (
                                                         <p className="text-xs mt-1 opacity-70">
                                                             Son Ödeme: {new Date(debt.dueDate.seconds * 1000).toLocaleDateString("tr-TR")}
                                                         </p>
+                                                    )}
+                                                    {debt.isInstallment && debt.installments && debt.installments.length > 0 && (
+                                                        <div className="mt-2 pt-2 border-t border-white/10">
+                                                            {/* Total and Remaining Debt */}
+                                                            <div className="mb-2 space-y-1">
+                                                                <div className="flex justify-between text-xs">
+                                                                    <span className="opacity-70">Toplam Borç:</span>
+                                                                    <span className="font-medium">{formatCurrency(debt.amount)}</span>
+                                                                </div>
+                                                                {debt.remainingAmount !== undefined && debt.remainingAmount !== debt.amount && (
+                                                                    <div className="flex justify-between text-xs">
+                                                                        <span className="opacity-70">Kalan Borç:</span>
+                                                                        <span className="font-bold text-red-600 dark:text-red-400">
+                                                                            {formatCurrency(debt.remainingAmount)}
+                                                                        </span>
+                                                                    </div>
+                                                                )}
+                                                                {/* Debt Completed Badge */}
+                                                                {debt.remainingAmount === 0 && (
+                                                                    <div className="mt-2 p-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-500/30 rounded-lg">
+                                                                        <div className="flex items-center gap-2 text-green-700 dark:text-green-400">
+                                                                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                                                            </svg>
+                                                                            <span className="text-xs font-semibold">Borç Tamamlandı! 🎉</span>
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+
+                                                            <p className="text-xs font-medium mb-1 opacity-90">Taksit Detayları:</p>
+                                                            <div className="max-h-40 overflow-y-auto space-y-1.5 text-xs pr-2 scrollbar-thin">
+                                                                {debt.installments.map((inst, idx) => (
+                                                                    <div key={idx} className="flex items-center gap-2 group/installment">
+                                                                        <label className="relative flex items-center cursor-pointer">
+                                                                            <input
+                                                                                type="checkbox"
+                                                                                checked={inst.isPaid || false}
+                                                                                onChange={(e) => handleInstallmentPayment(debt.id, idx, e.target.checked)}
+                                                                                className="sr-only peer"
+                                                                            />
+                                                                            <div className="w-5 h-5 border-2 border-gray-300 dark:border-white/20 rounded-md peer-checked:bg-green-500 peer-checked:border-green-500 transition-all duration-200 flex items-center justify-center peer-hover:border-green-400 peer-focus:ring-2 peer-focus:ring-green-500/20">
+                                                                                <svg
+                                                                                    className={`w-3 h-3 text-white transition-all duration-200 ${inst.isPaid ? 'scale-100 opacity-100' : 'scale-0 opacity-0'}`}
+                                                                                    fill="none"
+                                                                                    stroke="currentColor"
+                                                                                    viewBox="0 0 24 24"
+                                                                                >
+                                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                                                                </svg>
+                                                                            </div>
+                                                                        </label>
+                                                                        <div className={`flex-1 flex justify-between items-center transition-all duration-200 ${inst.isPaid ? 'opacity-50 line-through' : 'opacity-70'}`}>
+                                                                            <span>{idx + 1}. Taksit:</span>
+                                                                            <span className="font-medium">
+                                                                                {formatCurrency(inst.amount)} - {new Date(inst.date.seconds * 1000).toLocaleDateString("tr-TR")}
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
                                                     )}
                                                 </div>
                                             </div>

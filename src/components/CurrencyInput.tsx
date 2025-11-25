@@ -87,7 +87,7 @@ export default function CurrencyInput({
                 required={required}
                 autoFocus={autoFocus}
                 className={clsx(
-                    "w-full bg-gray-50 dark:bg-bg-primary border border-gray-300 dark:border-white/10 rounded-xl p-3 text-gray-900 dark:text-white focus:border-accent-primary focus:ring-1 focus:ring-accent-primary outline-none transition-all",
+                    "w-full bg-gray-50 dark:bg-bg-primary border border-gray-300 dark:border-white/10 rounded-xl p-3 text-gray-900 dark:text-white focus:border-accent-primary outline-none transition-all",
                     className
                 )}
             />

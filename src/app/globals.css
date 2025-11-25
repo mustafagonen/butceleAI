@@ -94,3 +94,42 @@ body {
 .animate-pulse-glow {
   animation: pulse-glow 2s infinite ease-in-out;
 }
+
+/* Custom Scrollbar Styles */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 10px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgb(209, 213, 219); /* gray-300 */
+  border-radius: 10px;
+  transition: background 0.2s ease;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: rgb(156, 163, 175); /* gray-400 */
+}
+
+/* Dark mode scrollbar */
+[data-theme="dark"] .scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+[data-theme="dark"] .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Futuristic theme scrollbar */
+[data-theme="futuristic"] .scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(0, 243, 255, 0.3);
+}
+
+[data-theme="futuristic"] .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 243, 255, 0.5);
+}
