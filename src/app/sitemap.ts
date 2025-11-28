@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-    const baseUrl = 'https://butcele.com';
+    const baseUrl = 'https://www.butcele.com.tr';
     const currentDate = new Date();
 
     // Only include public pages (authenticated pages are blocked in robots.txt)

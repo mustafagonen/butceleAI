@@ -12,7 +12,7 @@ Disallow: /login
 Allow: /$
 Allow: /en$
 
-Sitemap: https://butcele.com/sitemap.xml
+Sitemap: https://www.butcele.com.tr/sitemap.xml
 
 # Crawl-delay for respectful crawling
 Crawl-delay: 1

@@ -5,8 +5,8 @@ export const siteConfigTR = {
     name: 'Butcele',
     title: 'Butcele - Ücretsiz Bütçe Yönetimi, Harcama ve Borç Takibi',
     description: 'Bütçenizi yönetin, harcamalarınızı takip edin, borçlarınızı kontrol altına alın. Türkiye\'nin en kapsamlı ücretsiz kişisel finans ve para yönetimi uygulaması. Gelir-gider takibi, borç yönetimi, varlık portföyü.',
-    url: 'https://butcele.com',
-    ogImage: 'https://butcele.com/og-image.jpg',
+    url: 'https://www.butcele.com.tr',
+    ogImage: 'https://www.butcele.com.tr/og-image.jpg',
     keywords: [
         'bütçe yönetimi',
         'bütçemi yönet',
@@ -51,8 +51,8 @@ export const siteConfigEN = {
     name: 'Butcele',
     title: 'Butcele - Free Budget Management, Expense & Debt Tracking',
     description: 'Manage your budget, track expenses, control debts. The most comprehensive free personal finance and money management app. Income-expense tracking, debt management, asset portfolio.',
-    url: 'https://butcele.com/en',
-    ogImage: 'https://butcele.com/og-image-en.jpg',
+    url: 'https://www.butcele.com.tr/en',
+    ogImage: 'https://www.butcele.com.tr/og-image-en.jpg',
     keywords: [
         'budget management',
         'expense tracking',
