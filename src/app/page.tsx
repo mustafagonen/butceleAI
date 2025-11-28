@@ -2,6 +2,7 @@
 
 import Button from "@/components/Button";
 import { useTheme } from "@/context/ThemeContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -11,6 +12,7 @@ import Link from "next/link";
 export default function Home() {
   const { theme } = useTheme();
   const { user, loading } = useAuth();
+  const { t } = useLanguage();
   const router = useRouter();
 
   useEffect(() => {
@@ -29,45 +31,65 @@ export default function Home() {
       </div>
 
       <div className="space-y-4 max-w-2xl">
-        <h1 className="text-5xl md:text-7xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-text-primary via-accent-primary to-accent-secondary pb-2 leading-tight">
-          Harcamalarını <br /> Geleceğe Taşı
-        </h1>
+        <h1
+          className="text-5xl md:text-7xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-text-primary via-accent-primary to-accent-secondary pb-2 leading-tight"
+          dangerouslySetInnerHTML={{ __html: t("landing.hero.title") }}
+        />
         <p className="text-xl text-text-secondary">
-          Butcele ile gelir ve giderlerini modern, hızlı ve şık bir arayüzle yönet.
-          Finansal özgürlüğüne giden yolda en iyi yardımcın.
+          {t("landing.hero.subtitle")}
         </p>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
         <Link href="/login">
           <Button size="lg" className="gap-2 h-14">
-            Hemen Başla <FaArrowRight />
+            {t("landing.hero.startBtn")} <FaArrowRight />
           </Button>
         </Link>
         <Link href="#features">
           <Button variant="outline" size="lg" className="gap-2 h-14">
-            Özellikleri Keşfet <FaChartPie />
+            {t("landing.hero.featuresBtn")} <FaChartPie />
           </Button>
         </Link>
       </div>
 
       {/* Feature Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16 w-full">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-16 w-full">
         {[
           {
-            title: "Akıllı Analiz",
-            desc: "Harcamalarını kategorilere göre analiz et ve tasarruf fırsatlarını yakala.",
+            title: t("landing.features.analysis.title"),
+            desc: t("landing.features.analysis.desc"),
             icon: "📊",
           },
           {
-            title: "Çoklu Mod",
-            desc: "Gözünü yormayan Dark Mode veya sınırları zorlayan Futuristic Mode.",
+            title: t("landing.features.theme.title"),
+            desc: t("landing.features.theme.desc"),
             icon: "🎨",
           },
           {
-            title: "Tam Kontrol",
-            desc: "Gelir ve giderlerini tek bir yerden yönet, bütçeni aşma.",
-            icon: "⚡",
+            title: t("landing.features.portfolio.title"),
+            desc: t("landing.features.portfolio.desc"),
+            icon: "📈",
+          },
+          {
+            title: t("landing.features.debt.title"),
+            desc: t("landing.features.debt.desc"),
+            icon: "💳",
+          },
+          {
+            title: t("landing.features.assets.title"),
+            desc: t("landing.features.assets.desc"),
+            icon: "💎",
+          },
+          {
+            title: t("landing.features.expenses.title"),
+            desc: t("landing.features.expenses.desc"),
+            icon: "💸",
+          },
+          {
+            title: t("landing.features.ai.title"),
+            desc: t("landing.features.ai.desc"),
+            icon: "🤖",
           },
         ].map((feature, i) => (
           <div

@@ -1,0 +1,18 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /dashboard
+Disallow: /expenses/
+Disallow: /incomes/
+Disallow: /portfolio/
+Disallow: /summary
+Disallow: /login
+
+# Allow public pages
+Allow: /$
+Allow: /en$
+
+Sitemap: https://butcele.com/sitemap.xml
+
+# Crawl-delay for respectful crawling
+Crawl-delay: 1

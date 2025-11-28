@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { FaArrowUp, FaArrowDown, FaWallet, FaLightbulb, FaChartPie, FaExclamationTriangle, FaTrophy, FaUtensils, FaShoppingBag, FaCar, FaHome, FaGamepad, FaHeartbeat, FaGraduationCap, FaPlane } from "react-icons/fa";
@@ -36,14 +37,14 @@ interface Insight {
 export default function SummaryPage() {
     const { user, loading: authLoading } = useAuth();
     const { privacyMode } = useTheme();
+    const { t, language } = useLanguage();
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedDate, setSelectedDate] = useState(new Date());
 
-    const months = [
-        "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
-        "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"
-    ];
+    const months = Array.from({ length: 12 }, (_, i) => {
+        return new Date(0, i).toLocaleString(language === 'en' ? 'en-US' : 'tr-TR', { month: 'long' });
+    });
 
     useEffect(() => {
         if (authLoading) return;
@@ -154,15 +155,15 @@ export default function SummaryPage() {
             insights.push({
                 type: "positive",
                 icon: <FaTrophy className="text-yellow-500" />,
-                title: "Tebrikler!",
-                message: `Bu ay gelirleriniz giderlerinizden ${fmt(currentStats.balance)} daha fazla. Harika gidiyorsunuz!`
+                title: t("summaryPage.insights.congrats"),
+                message: t("summaryPage.insights.congratsMessage").replace("{amount}", fmt(currentStats.balance))
             });
         } else if (currentStats.balance < 0) {
             insights.push({
                 type: "warning",
                 icon: <FaExclamationTriangle className="text-red-500" />,
-                title: "Dikkat!",
-                message: `Bu ay giderleriniz gelirlerinizi ${fmt(Math.abs(currentStats.balance))} aştı. Harcamalarınızı gözden geçirmek isteyebilirsiniz.`
+                title: t("summaryPage.insights.attention"),
+                message: t("summaryPage.insights.attentionMessage").replace("{amount}", fmt(Math.abs(currentStats.balance)))
             });
         }
 
@@ -175,15 +176,19 @@ export default function SummaryPage() {
                 insights.push({
                     type: "negative",
                     icon: <FaArrowUp className="text-red-400" />,
-                    title: "Harcamalar Arttı",
-                    message: `Geçen aya göre harcamalarınız %${Math.abs(percent).toFixed(1)} (${fmt(diff)}) arttı.`
+                    title: t("summaryPage.insights.expensesIncreased"),
+                    message: t("summaryPage.insights.expensesIncreasedMessage")
+                        .replace("{percent}", Math.abs(percent).toFixed(1))
+                        .replace("{amount}", fmt(diff))
                 });
             } else if (diff < 0) {
                 insights.push({
                     type: "positive",
                     icon: <FaArrowDown className="text-green-400" />,
-                    title: "Tasarruf Ettiniz",
-                    message: `Geçen aya göre %${Math.abs(percent).toFixed(1)} (${fmt(Math.abs(diff))}) daha az harcadınız. Süper!`
+                    title: t("summaryPage.insights.saved"),
+                    message: t("summaryPage.insights.savedMessage")
+                        .replace("{percent}", Math.abs(percent).toFixed(1))
+                        .replace("{amount}", fmt(Math.abs(diff)))
                 });
             }
         }
@@ -197,8 +202,10 @@ export default function SummaryPage() {
                 insights.push({
                     type: "warning",
                     icon: <FaChartPie className="text-orange-400" />,
-                    title: "Yüksek Kategori Harcaması",
-                    message: `Bu ay harcamalarınızın %${percentOfTotal.toFixed(0)}'si "${topCategory}" kategorisine gitti. Bu kategoriyi biraz kısabilir misiniz?`
+                    title: t("summaryPage.insights.highCategorySpending"),
+                    message: t("summaryPage.insights.highCategorySpendingMessage")
+                        .replace("{percent}", percentOfTotal.toFixed(0))
+                        .replace("{category}", topCategory)
                 });
             }
         }
@@ -208,8 +215,8 @@ export default function SummaryPage() {
             insights.push({
                 type: "positive",
                 icon: <FaWallet className="text-blue-400" />,
-                title: "Gelir Artışı",
-                message: `Gelirleriniz geçen aya göre arttı. Bereketli olsun!`
+                title: t("summaryPage.insights.incomeIncreased"),
+                message: t("summaryPage.insights.incomeIncreasedMessage")
             });
         }
 
@@ -222,7 +229,7 @@ export default function SummaryPage() {
 
     return (
         <div className="space-y-6">
-            <h1 className="text-3xl font-bold">Aylık Özet & Analiz</h1>
+            <h1 className="text-3xl font-bold">{t("summaryPage.title")}</h1>
 
             {/* Month & Year Selector */}
             <div className="glass p-2 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4 overflow-x-auto">
@@ -242,7 +249,7 @@ export default function SummaryPage() {
                                 key={month}
                                 onClick={() => handleMonthSelect(index)}
                                 className={clsx(
-                                    "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap shrink-0",
+                                    "px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 whitespace-nowrap shrink-0",
                                     isSelected ? "bg-accent-primary text-white shadow-lg shadow-accent-primary/25" :
                                         isCurrentMonth ? "border border-accent-primary/50 text-accent-primary bg-accent-primary/5" :
                                             "hover:bg-white/10 text-text-secondary hover:text-text-primary"
@@ -264,7 +271,7 @@ export default function SummaryPage() {
                             <div className="absolute right-0 top-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                                 <FaArrowUp size={60} />
                             </div>
-                            <p className="text-text-secondary text-sm font-medium">Toplam Gelir</p>
+                            <p className="text-text-secondary text-sm font-medium">{t("summaryPage.totalIncome")}</p>
                             <p className="text-2xl font-bold text-green-500 mt-1">
                                 {privacyMode ? "****" : `+${formatCurrency(currentStats.income)}`}
                             </p>
@@ -273,7 +280,7 @@ export default function SummaryPage() {
                             <div className="absolute right-0 top-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                                 <FaArrowDown size={60} />
                             </div>
-                            <p className="text-text-secondary text-sm font-medium">Toplam Gider</p>
+                            <p className="text-text-secondary text-sm font-medium">{t("summaryPage.totalExpense")}</p>
                             <p className="text-2xl font-bold text-red-500 mt-1">
                                 {privacyMode ? "****" : `-${formatCurrency(currentStats.expense)}`}
                             </p>
@@ -285,7 +292,7 @@ export default function SummaryPage() {
                             <div className="absolute right-0 top-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                                 <FaWallet size={60} />
                             </div>
-                            <p className="text-text-secondary text-sm font-medium">Net Durum</p>
+                            <p className="text-text-secondary text-sm font-medium">{t("summaryPage.netStatus")}</p>
                             <p className={clsx("text-2xl font-bold mt-1", currentStats.balance >= 0 ? "text-blue-500" : "text-orange-500")}>
                                 {privacyMode ? "****" : `${currentStats.balance >= 0 ? "+" : ""}${formatCurrency(currentStats.balance)}`}
                             </p>
@@ -300,7 +307,7 @@ export default function SummaryPage() {
 
                     {/* Top Expenses List */}
                     <div className="glass p-6 rounded-2xl">
-                        <h3 className="text-lg font-bold mb-4">En Çok Harcanan Kategoriler</h3>
+                        <h3 className="text-lg font-bold mb-4">{t("summaryPage.topExpenses")}</h3>
                         {topExpenses.length > 0 ? (
                             <div className="space-y-4">
                                 {topExpenses.map(([category, amount], index) => (
@@ -324,7 +331,7 @@ export default function SummaryPage() {
                                 ))}
                             </div>
                         ) : (
-                            <p className="text-text-secondary text-center py-4">Bu ay henüz harcama yapılmamış.</p>
+                            <p className="text-text-secondary text-center py-4">{t("summaryPage.noExpenses")}</p>
                         )}
                     </div>
                 </div>
@@ -334,7 +341,7 @@ export default function SummaryPage() {
                     <div className="glass p-6 rounded-2xl h-full border border-accent-primary/20 bg-accent-primary/5">
                         <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
                             <FaLightbulb className="text-yellow-400" />
-                            Akıllı Analizler
+                            {t("summaryPage.smartInsights")}
                         </h3>
 
                         <div className="space-y-4">
@@ -354,7 +361,7 @@ export default function SummaryPage() {
                                 ))
                             ) : (
                                 <div className="text-center py-8 text-text-secondary">
-                                    <p>Analiz için yeterli veri bekleniyor...</p>
+                                    <p>{t("summaryPage.waitingForData")}</p>
                                 </div>
                             )}
                         </div>

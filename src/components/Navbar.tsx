@@ -4,12 +4,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import { useTheme } from "@/context/ThemeContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { useAuth } from "@/context/AuthContext";
 import { FaWallet, FaMoon, FaSun, FaRocket, FaSignOutAlt, FaUser } from "react-icons/fa";
 import PrivacyToggle from "@/components/PrivacyToggle";
 
 export default function Navbar() {
     const { theme, setTheme } = useTheme();
+    const { language, setLanguage, t } = useLanguage();
     const { user, logout } = useAuth();
     const pathname = usePathname();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -64,37 +66,45 @@ export default function Navbar() {
                     {user ? (
                         <>
                             <Link
+                                href="/dashboard"
+                                className={`hidden md:block hover:text-accent-primary transition-colors ${pathname === "/dashboard" ? "text-accent-primary" : ""}`}
+                            >
+                                {t("navbar.dashboard")}
+                            </Link>
+                            <Link
                                 href="/expenses"
                                 className={`hidden md:block hover:text-accent-primary transition-colors ${pathname?.startsWith("/expenses") ? "text-accent-primary" : ""}`}
                             >
-                                Harcamalar
+                                {t("navbar.expenses")}
                             </Link>
                             <Link
                                 href="/incomes"
                                 className={`hidden md:block hover:text-accent-primary transition-colors ${pathname?.startsWith("/incomes") ? "text-accent-primary" : ""}`}
                             >
-                                Gelirler
+                                {t("navbar.incomes")}
                             </Link>
                             <Link
                                 href="/summary"
                                 className={`hidden md:block hover:text-accent-primary transition-colors ${pathname?.startsWith("/summary") ? "text-accent-primary" : ""}`}
                             >
-                                Özet
+                                {t("navbar.summary")}
                             </Link>
                             <Link
                                 href="/portfolio"
                                 className={`hidden md:block hover:text-accent-primary transition-colors ${pathname?.startsWith("/portfolio") ? "text-accent-primary" : ""}`}
                             >
-                                Portföyüm
-                            </Link>
-                            <Link
-                                href="/dashboard"
-                                className={`hidden md:block hover:text-accent-primary transition-colors ${pathname === "/dashboard" ? "text-accent-primary" : ""}`}
-                            >
-                                Panel
+                                {t("navbar.portfolio")}
                             </Link>
                         </>
                     ) : null}
+
+                    <button
+                        onClick={() => setLanguage(language === "tr" ? "en" : "tr")}
+                        className="p-2 rounded-full hover:bg-white/10 transition-colors text-accent-primary font-bold text-sm"
+                        aria-label="Toggle Language"
+                    >
+                        {language === "tr" ? "EN" : "TR"}
+                    </button>
 
                     <button
                         onClick={toggleTheme}
@@ -122,22 +132,22 @@ export default function Navbar() {
 
                             {/* Dropdown Menu */}
                             {isDropdownOpen && (
-                                <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-gray-900 rounded-xl shadow-xl border border-gray-100 dark:border-white/10 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                                <div className="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-gray-900 rounded-xl shadow-xl border border-gray-100 dark:border-white/10 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                                     <div className="p-3 border-b border-gray-100 dark:border-white/5">
-                                        <p className="text-xs text-text-secondary">Oturum açıldı</p>
-                                        <p className="font-medium truncate">{user.email}</p>
+                                        <p className="text-xs text-text-secondary mb-0.5">{t("navbar.signedIn")}</p>
+                                        <p className="text-[11px] font-light text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
                                     </div>
                                     <div className="p-1">
                                         <button className="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 text-sm flex items-center gap-2 transition-colors">
                                             <FaUser className="text-accent-primary" />
-                                            Profil
+                                            {t("navbar.profile")}
                                         </button>
                                         <button
                                             onClick={logout}
                                             className="w-full text-left px-3 py-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 text-red-500 text-sm flex items-center gap-2 transition-colors"
                                         >
                                             <FaSignOutAlt />
-                                            Çıkış Yap
+                                            {t("navbar.logout")}
                                         </button>
                                     </div>
                                 </div>
@@ -145,7 +155,7 @@ export default function Navbar() {
                         </div>
                     ) : (
                         <Link href="/login" className="px-4 py-2 rounded-lg bg-accent-primary text-white text-sm font-medium hover:brightness-110 transition-all">
-                            Giriş Yap
+                            {t("navbar.login")}
                         </Link>
                     )}
                 </div>

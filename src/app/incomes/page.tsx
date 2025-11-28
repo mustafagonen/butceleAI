@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { collection, query, where, orderBy, onSnapshot, deleteDoc, doc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import Button from "@/components/Button";
@@ -25,6 +26,7 @@ interface Transaction {
 
 export default function IncomesPage() {
     const { user, loading: authLoading } = useAuth();
+    const { t, language } = useLanguage();
     const [incomes, setIncomes] = useState<Transaction[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -46,10 +48,9 @@ export default function IncomesPage() {
 
     const [error, setError] = useState<string | null>(null);
 
-    const months = [
-        "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
-        "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"
-    ];
+    const months = Array.from({ length: 12 }, (_, i) => {
+        return new Date(0, i).toLocaleString(language === 'en' ? 'en-US' : 'tr-TR', { month: 'long' });
+    });
 
     const handleMonthSelect = (index: number) => {
         const newDate = new Date(selectedDate);
@@ -80,7 +81,7 @@ export default function IncomesPage() {
             setIsResetModalOpen(false);
         } catch (error) {
             console.error("Error resetting month:", error);
-            alert("Sıfırlama işlemi sırasında bir hata oluştu.");
+            alert(t("incomesPage.resetError"));
             setLoading(false);
         }
     };
@@ -182,7 +183,7 @@ export default function IncomesPage() {
             setEditForm({});
         } catch (error) {
             console.error("Error updating document: ", error);
-            alert("Güncelleme sırasında bir hata oluştu.");
+            alert(t("incomesPage.updateError"));
         }
     };
 
@@ -201,28 +202,28 @@ export default function IncomesPage() {
             }
         } catch (error) {
             console.error("Error deleting document: ", error);
-            alert("Silme işlemi sırasında bir hata oluştu.");
+            alert(t("incomesPage.deleteError"));
         }
     };
 
     return (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                <h1 className="text-3xl font-bold">Gelirlerim</h1>
+                <h1 className="text-3xl font-bold">{t("incomesPage.title")}</h1>
                 <div className="flex gap-2">
                     {incomes.length > 0 && (
                         <Button
                             variant="secondary"
                             onClick={handleResetClick}
                             className="gap-2 text-red-500"
-                            title="Bu aydaki tüm gelirleri sil"
+                            title={t("incomesPage.deleteAllMonth")}
                         >
-                            <FaTrash /> <span className="hidden sm:inline">Bu Ayın Gelirlerini Sil</span>
+                            <FaTrash /> <span className="hidden sm:inline">{t("incomesPage.deleteAllMonth")}</span>
                         </Button>
                     )}
                     <Link href="/incomes/new">
                         <Button className="gap-2 bg-accent-secondary shadow-accent-secondary/20">
-                            <FaPlus /> Yeni Gelir
+                            <FaPlus /> {t("incomesPage.newIncome")}
                         </Button>
                     </Link>
                 </div>
@@ -260,7 +261,7 @@ export default function IncomesPage() {
                                 key={month}
                                 onClick={() => handleMonthSelect(index)}
                                 className={clsx(
-                                    "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap shrink-0",
+                                    "px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 whitespace-nowrap shrink-0",
                                     isSelected
                                         ? "bg-accent-secondary text-white shadow-lg shadow-accent-secondary/25"
                                         : isCurrentMonth
@@ -282,7 +283,7 @@ export default function IncomesPage() {
                     <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" />
                     <input
                         type="text"
-                        placeholder="Ara (Kategori, Açıklama)..."
+                        placeholder={t("incomesPage.searchPlaceholder")}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full bg-white/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl pl-10 pr-4 py-2.5 focus:border-accent-secondary outline-none transition-colors"
@@ -295,12 +296,12 @@ export default function IncomesPage() {
                         value={selectedCategory}
                         onChange={setSelectedCategory}
                         options={INCOME_CATEGORIES.map(c => ({ value: c, label: c }))}
-                        placeholder="Tüm Kategoriler"
+                        placeholder={t("incomesPage.allCategories")}
                     />
 
                     {(searchTerm || selectedCategory) && (
                         <Button variant="ghost" onClick={clearFilters} className="px-3 h-[42px]">
-                            Temizle
+                            {t("incomesPage.clear")}
                         </Button>
                     )}
                 </div>
@@ -309,7 +310,7 @@ export default function IncomesPage() {
             {/* List */}
             {error ? (
                 <div className="p-4 bg-red-500/10 border border-red-500/50 rounded-xl text-red-500 text-center">
-                    <p className="font-bold">Bir hata oluştu:</p>
+                    <p className="font-bold">{t("incomesPage.error")}:</p>
                     <p className="text-sm">{error}</p>
                     {error.includes("index") && (
                         <p className="text-xs mt-2">
@@ -321,7 +322,7 @@ export default function IncomesPage() {
                 <Loader />
             ) : filteredIncomes.length === 0 ? (
                 <div className="text-center py-10 text-text-secondary bg-white/5 rounded-xl border border-white/5">
-                    {incomes.length === 0 ? "Bu ay için gelir kaydı bulunmuyor." : "Filtrelere uygun kayıt bulunamadı."}
+                    {incomes.length === 0 ? t("incomesPage.noIncomes") : t("incomesPage.noResults")}
                 </div>
             ) : (
                 <div className="grid gap-4">
@@ -356,7 +357,7 @@ export default function IncomesPage() {
                                             +{formatCurrency(income.amount)}
                                         </div>
                                         <div className="text-xs text-text-secondary">
-                                            {new Date(income.date.seconds * 1000).toLocaleDateString("tr-TR")}
+                                            {new Date(income.date.seconds * 1000).toLocaleDateString(language === 'en' ? 'en-US' : 'tr-TR')}
                                         </div>
                                     </div>
                                 </div>
@@ -376,13 +377,13 @@ export default function IncomesPage() {
                                                             value={editForm.amount}
                                                             onChange={(e) => setEditForm({ ...editForm, amount: parseFloat(e.target.value) })}
                                                             className="w-full bg-white/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm"
-                                                            placeholder="Tutar"
+                                                            placeholder={t("incomesPage.amount")}
                                                         />
                                                         <CustomSelect
                                                             value={editForm.category || ""}
                                                             onChange={(val) => setEditForm({ ...editForm, category: val })}
                                                             options={INCOME_CATEGORIES.map(c => ({ value: c, label: c }))}
-                                                            placeholder="Kategori"
+                                                            placeholder={t("incomesPage.category")}
                                                         />
                                                     </div>
                                                     <input
@@ -390,20 +391,20 @@ export default function IncomesPage() {
                                                         value={editForm.description || ""}
                                                         onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
                                                         className="w-full bg-white/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm"
-                                                        placeholder="Açıklama"
+                                                        placeholder={t("incomesPage.description")}
                                                     />
                                                     <CustomSelect
                                                         value={editForm.paymentMethod || ""}
                                                         onChange={(val) => setEditForm({ ...editForm, paymentMethod: val })}
                                                         options={PAYMENT_TYPES.map(t => ({ value: t, label: t }))}
-                                                        placeholder="Ödeme Yöntemi"
+                                                        placeholder={t("incomesPage.paymentMethod")}
                                                     />
                                                     <div className="flex justify-end gap-2 pt-2">
                                                         <Button variant="ghost" size="sm" onClick={handleCancelEdit}>
-                                                            İptal
+                                                            {t("common.cancel")}
                                                         </Button>
                                                         <Button size="sm" onClick={handleUpdate} className="gap-2 bg-accent-secondary">
-                                                            <FaSave /> Kaydet
+                                                            <FaSave /> {t("common.save")}
                                                         </Button>
                                                     </div>
                                                 </div>
@@ -412,20 +413,20 @@ export default function IncomesPage() {
                                                     <div className="space-y-3 text-sm flex-1">
                                                         {income.description && (
                                                             <div>
-                                                                <span className="block text-xs font-medium text-text-secondary uppercase tracking-wider mb-1">Açıklama</span>
+                                                                <span className="block text-xs font-medium text-text-secondary uppercase tracking-wider mb-1">{t("incomesPage.description")}</span>
                                                                 <p className="text-text-primary">{income.description}</p>
                                                             </div>
                                                         )}
                                                         <div className="flex flex-wrap gap-4 text-xs text-text-secondary pt-2">
-                                                            <span>İşlem ID: {income.id.slice(0, 8)}...</span>
-                                                            <span>{new Date(income.date.seconds * 1000).toLocaleString("tr-TR")}</span>
+                                                            <span>{t("incomesPage.transactionId")}: {income.id.slice(0, 8)}...</span>
+                                                            <span>{new Date(income.date.seconds * 1000).toLocaleString(language === 'en' ? 'en-US' : 'tr-TR')}</span>
                                                         </div>
                                                     </div>
 
                                                     <div className="flex items-center gap-2 ml-4">
                                                         {deletingId === income.id ? (
                                                             <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-5">
-                                                                <span className="text-xs text-red-500 font-medium">Silinsin mi?</span>
+                                                                <span className="text-xs text-red-500 font-medium">{t("incomesPage.deleteConfirm")}</span>
                                                                 <button
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();
@@ -453,7 +454,7 @@ export default function IncomesPage() {
                                                                         handleEditClick(income);
                                                                     }}
                                                                     className="p-2 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                                                                    title="Düzenle"
+                                                                    title={t("common.edit")}
                                                                 >
                                                                     <FaEdit size={16} />
                                                                 </button>
@@ -463,7 +464,7 @@ export default function IncomesPage() {
                                                                         handleDeleteClick(income.id);
                                                                     }}
                                                                     className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                                                                    title="Sil"
+                                                                    title={t("common.delete")}
                                                                 >
                                                                     <FaTrash size={16} />
                                                                 </button>
@@ -485,9 +486,9 @@ export default function IncomesPage() {
                 isOpen={isResetModalOpen}
                 onClose={() => setIsResetModalOpen(false)}
                 onConfirm={handleConfirmReset}
-                title="Tüm Gelirleri Sil"
-                message={`${months[selectedDate.getMonth()]} ${selectedDate.getFullYear()} dönemine ait TÜM gelirleri silmek istediğinize emin misiniz? Bu işlem geri alınamaz!`}
-                confirmText="Evet, Sil"
+                title={t("incomesPage.deleteMonthConfirmTitle")}
+                message={t("incomesPage.deleteMonthConfirmMessage").replace("{date}", `${months[selectedDate.getMonth()]} ${selectedDate.getFullYear()}`)}
+                confirmText={t("incomesPage.confirmDelete")}
                 variant="danger"
             />
         </div>

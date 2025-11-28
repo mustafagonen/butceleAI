@@ -6,13 +6,12 @@ import { useAuth } from "@/context/AuthContext";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import Button from "@/components/Button";
-import { FaArrowLeft, FaSave, FaPlus, FaTrash } from "react-icons/fa";
+import { FaArrowLeft, FaSave } from "react-icons/fa";
 import Link from "next/link";
 import CustomSelect from "@/components/CustomSelect";
 import SearchableSelect from "@/components/SearchableSelect";
 import CurrencyInput from "@/components/CurrencyInput";
-import { BIST_STOCKS, TEFAS_FUNDS, BES_FUNDS } from "@/lib/market-data";
-import clsx from "clsx";
+import { BIST_STOCKS, TEFAS_FUNDS } from "@/lib/market-data";
 
 const ASSET_TYPES = [
     { value: "tl", label: "Nakit (TL)" },
@@ -49,8 +48,8 @@ export default function AddAssetPage() {
         name: "",
         code: "",
         amount: "",
-        subType: "",
-        totalAmount: ""
+        subType: "", // For gold types or specific details
+        totalAmount: "" // For BES total amount
     });
 
     // BES Funds state
@@ -85,19 +84,21 @@ export default function AddAssetPage() {
         setError(null);
 
         try {
+            // Construct the asset object
             const assetData: Record<string, unknown> = {
                 userId: user.uid,
-                type: formData.type === "fund" ? "bes" : formData.type,
+                type: formData.type === "fund" ? "bes" : formData.type, // Map 'fund' to 'bes' structure or keep separate if needed. Using 'bes' logic for funds for now as they are similar (TEFAS)
                 amount: parseFloat(formData.amount),
                 updatedAt: serverTimestamp()
             };
 
+            // Customize based on type
             if (formData.type === "tl") {
                 assetData.name = "Nakit Birikim";
                 assetData.code = "TRY";
             } else if (formData.type === "gold") {
                 assetData.name = formData.subType ? `Altın (${GOLD_TYPES.find(t => t.value === formData.subType)?.label})` : "Altın";
-                assetData.code = "GA";
+                assetData.code = "GA"; // Default to Gram Altın code for fetcher
             } else if (formData.type === "stock") {
                 const stock = BIST_STOCKS.find(s => s.value === formData.code);
                 assetData.name = stock ? stock.label.split(" - ")[1] : formData.code;
@@ -106,16 +107,19 @@ export default function AddAssetPage() {
                 const fund = TEFAS_FUNDS.find(f => f.value === formData.code);
                 assetData.name = fund ? fund.label : formData.code;
                 assetData.code = formData.code;
-                assetData.type = "bes";
+                assetData.type = "bes"; // Treat as BES/Fund for now in backend
             } else if (formData.type === "real_estate") {
                 assetData.name = formData.name;
-                assetData.code = "RE";
+                assetData.code = "RE"; // Real Estate code
+                // For Real Estate, amount is the estimated value (similar to TL)
                 assetData.amount = parseFloat(formData.amount);
             } else if (formData.type === "vehicle") {
                 assetData.name = formData.name;
-                assetData.code = "VH";
+                assetData.code = "VH"; // Vehicle code
+                // For Vehicle, amount is the estimated value (similar to TL)
                 assetData.amount = parseFloat(formData.amount);
             } else if (formData.type === "bes") {
+                // Validate BES funds
                 if (totalPercentage !== 100) {
                     setError("Fon yüzdeleri toplamı %100 olmalıdır.");
                     setLoading(false);
@@ -128,12 +132,14 @@ export default function AddAssetPage() {
                 }
 
                 assetData.name = "BES Portföyü";
-                assetData.amount = parseFloat(formData.totalAmount);
+                assetData.totalAmount = parseFloat(formData.totalAmount);
                 assetData.funds = besFunds.map(f => ({
                     code: f.code,
-                    name: BES_FUNDS.find(fund => fund.value === f.code)?.label || f.code,
+                    name: TEFAS_FUNDS.find(fund => fund.value === f.code)?.label || f.code,
                     percentage: parseFloat(f.percentage)
                 }));
+                // Don't set amount for BES, it will be calculated from funds
+                delete assetData.amount;
             } else {
                 assetData.name = formData.name;
                 assetData.code = formData.code.toUpperCase();
@@ -181,7 +187,7 @@ export default function AddAssetPage() {
                     />
                 </div>
 
-                {/* TL */}
+                {/* Dynamic Fields */}
                 {formData.type === "tl" && (
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-text-secondary">Miktar (TL)</label>
@@ -194,7 +200,6 @@ export default function AddAssetPage() {
                     </div>
                 )}
 
-                {/* Gold */}
                 {formData.type === "gold" && (
                     <>
                         <div className="space-y-2">
@@ -221,7 +226,6 @@ export default function AddAssetPage() {
                     </>
                 )}
 
-                {/* Stock */}
                 {formData.type === "stock" && (
                     <>
                         <div className="space-y-2">
@@ -248,7 +252,6 @@ export default function AddAssetPage() {
                     </>
                 )}
 
-                {/* Fund */}
                 {formData.type === "fund" && (
                     <>
                         <div className="space-y-2">
@@ -270,196 +273,74 @@ export default function AddAssetPage() {
                                 className="w-full bg-gray-50 dark:bg-bg-primary border border-gray-300 dark:border-white/10 rounded-xl p-3 outline-none focus:border-accent-primary"
                                 placeholder="0"
                                 required
-                            />
-                        </div>
-                    </>
+                    <>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-text-secondary">Gayrimenkul Türü</label>
+                                    <CustomSelect
+                                        value={formData.subType}
+                                        onChange={(val) => setFormData({ ...formData, subType: val })}
+                                        options={REAL_ESTATE_TYPES}
+                                        placeholder="Seçiniz"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-text-secondary">Tanım / İsim</label>
+                                    <input
+                                        type="text"
+                                        value={formData.name}
+                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                        className="w-full bg-gray-50 dark:bg-bg-primary border border-gray-300 dark:border-white/10 rounded-xl p-3 outline-none focus:border-accent-primary"
+                                        placeholder="Örn: Kadıköy Daire"
+                                        required
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-text-secondary">Tahmini Değer (TL)</label>
+                                    <CurrencyInput
+                                        value={formData.amount}
+                                        onChange={(val) => setFormData({ ...formData, amount: val })}
+                                        placeholder="0,00"
+                                        required
+                                    />
+                                </div>
+                            </>
                 )}
 
-                {/* BES */}
-                {formData.type === "bes" && (
-                    <>
-                        <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                                <label className="text-sm font-medium text-text-secondary">BES Fonları</label>
-                                <button
-                                    type="button"
-                                    onClick={addBesFund}
-                                    className="text-xs bg-accent-primary hover:bg-accent-primary/90 text-white px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1"
-                                >
-                                    <FaPlus size={10} />
-                                    Fon Ekle
-                                </button>
-                            </div>
-
-                            {besFunds.map((fund, index) => (
-                                <div key={index} className="flex gap-2 items-start">
-                                    <div className="flex-1 space-y-2">
-                                        <SearchableSelect
-                                            value={fund.code}
-                                            onChange={(val) => updateBesFund(index, 'code', val)}
-                                            options={BES_FUNDS}
-                                            placeholder="BES Fonu Seç (Örn: HES)"
-                                        />
-                                    </div>
-                                    <div className="w-24 space-y-2">
+                            {formData.type === "vehicle" && (
+                                <>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-text-secondary">Araç Adı / Modeli</label>
                                         <input
-                                            type="number"
-                                            step="0.01"
-                                            min="0"
-                                            max="100"
-                                            value={fund.percentage}
-                                            onChange={(e) => updateBesFund(index, 'percentage', e.target.value)}
+                                            type="text"
+                                            value={formData.name}
+                                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                             className="w-full bg-gray-50 dark:bg-bg-primary border border-gray-300 dark:border-white/10 rounded-xl p-3 outline-none focus:border-accent-primary"
-                                            placeholder="%"
+                                            placeholder="Örn: Toyota Corolla 2020"
                                             required
                                         />
                                     </div>
-                                    {besFunds.length > 1 && (
-                                        <button
-                                            type="button"
-                                            onClick={() => removeBesFund(index)}
-                                            className="p-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
-                                        >
-                                            <FaTrash size={14} />
-                                        </button>
-                                    )}
-                                </div>
-                            ))}
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-text-secondary">Tahmini Değer (TL)</label>
+                                        <CurrencyInput
+                                            value={formData.amount}
+                                            onChange={(val) => setFormData({ ...formData, amount: val })}
+                                            placeholder="0,00"
+                                            required
+                                        />
+                                    </div>
+                                </>
+                            )}
 
-                            <div className={clsx(
-                                "p-3 rounded-xl text-sm font-medium",
-                                totalPercentage === 100
-                                    ? "bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400"
-                                    : totalPercentage > 100
-                                        ? "bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400"
-                                        : "bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400"
-                            )}>
-                                Toplam: %{totalPercentage.toFixed(2)} {totalPercentage === 100 ? "✓" : totalPercentage > 100 ? "(Fazla!)" : "(Eksik)"}
-                            </div>
-                        </div>
-
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-text-secondary">Toplam BES Tutarı (TL)</label>
-                            <CurrencyInput
-                                value={formData.totalAmount}
-                                onChange={(val) => setFormData({ ...formData, totalAmount: val })}
-                                placeholder="0,00"
-                                required
-                            />
-                        </div>
-                    </>
-                )}
-
-                {/* Crypto */}
-                {formData.type === "crypto" && (
-                    <>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-text-secondary">Sembol</label>
-                            <input
-                                type="text"
-                                value={formData.code}
-                                onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-                                className="w-full bg-gray-50 dark:bg-bg-primary border border-gray-300 dark:border-white/10 rounded-xl p-3 outline-none focus:border-accent-primary uppercase"
-                                placeholder="Örn: BTC"
-                                required
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-text-secondary">Adet</label>
-                            <input
-                                type="number"
-                                step="0.000001"
-                                value={formData.amount}
-                                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                                className="w-full bg-gray-50 dark:bg-bg-primary border border-gray-300 dark:border-white/10 rounded-xl p-3 outline-none focus:border-accent-primary"
-                                placeholder="0"
-                                required
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-text-secondary">İsim (İsteğe Bağlı)</label>
-                            <input
-                                type="text"
-                                value={formData.name}
-                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                className="w-full bg-gray-50 dark:bg-bg-primary border border-gray-300 dark:border-white/10 rounded-xl p-3 outline-none focus:border-accent-primary"
-                                placeholder="Bitcoin"
-                            />
-                        </div>
-                    </>
-                )}
-
-                {/* Real Estate */}
-                {formData.type === "real_estate" && (
-                    <>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-text-secondary">Gayrimenkul Türü</label>
-                            <CustomSelect
-                                value={formData.subType}
-                                onChange={(val) => setFormData({ ...formData, subType: val })}
-                                options={REAL_ESTATE_TYPES}
-                                placeholder="Seçiniz"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-text-secondary">Tanım / İsim</label>
-                            <input
-                                type="text"
-                                value={formData.name}
-                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                className="w-full bg-gray-50 dark:bg-bg-primary border border-gray-300 dark:border-white/10 rounded-xl p-3 outline-none focus:border-accent-primary"
-                                placeholder="Örn: Kadıköy Daire"
-                                required
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-text-secondary">Tahmini Değer (TL)</label>
-                            <CurrencyInput
-                                value={formData.amount}
-                                onChange={(val) => setFormData({ ...formData, amount: val })}
-                                placeholder="0,00"
-                                required
-                            />
-                        </div>
-                    </>
-                )}
-
-                {/* Vehicle */}
-                {formData.type === "vehicle" && (
-                    <>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-text-secondary">Araç Adı / Modeli</label>
-                            <input
-                                type="text"
-                                value={formData.name}
-                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                className="w-full bg-gray-50 dark:bg-bg-primary border border-gray-300 dark:border-white/10 rounded-xl p-3 outline-none focus:border-accent-primary"
-                                placeholder="Örn: Toyota Corolla 2020"
-                                required
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-text-secondary">Tahmini Değer (TL)</label>
-                            <CurrencyInput
-                                value={formData.amount}
-                                onChange={(val) => setFormData({ ...formData, amount: val })}
-                                placeholder="0,00"
-                                required
-                            />
-                        </div>
-                    </>
-                )}
-
-                <Button
-                    type="submit"
-                    className="w-full gap-2"
-                    size="lg"
-                    isLoading={loading}
-                >
-                    <FaSave />
-                    Kaydet
-                </Button>
-            </form>
-        </div>
-    );
+                            <Button
+                                type="submit"
+                                className="w-full gap-2"
+                                size="lg"
+                                isLoading={loading}
+                            >
+                                <FaSave />
+                                Kaydet
+                            </Button>
+                        </form>
+                    </div>
+                );
 }

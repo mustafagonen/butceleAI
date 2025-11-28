@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { collection, query, where, onSnapshot, deleteDoc, doc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { FaPlus, FaWallet, FaCoins, FaChartLine, FaBitcoin, FaPiggyBank, FaTrash, FaEdit, FaBuilding, FaCreditCard, FaMoneyBillWave, FaUserFriends, FaQuestionCircle, FaDollarSign, FaEuroSign } from "react-icons/fa";
+import { FaPlus, FaWallet, FaCoins, FaChartLine, FaBitcoin, FaPiggyBank, FaTrash, FaEdit, FaBuilding, FaCreditCard, FaMoneyBillWave, FaUserFriends, FaQuestionCircle, FaDollarSign, FaEuroSign, FaArrowRight, FaCar } from "react-icons/fa";
 import Link from "next/link";
 import Loader from "@/components/Loader";
 import { formatCurrency } from "@/lib/utils";
@@ -15,7 +15,7 @@ import FinancialGoalCard from "@/components/FinancialGoalCard";
 
 interface Asset {
     id: string;
-    type: "tl" | "gold" | "stock" | "crypto" | "bes" | "real_estate";
+    type: "tl" | "gold" | "stock" | "crypto" | "bes" | "real_estate" | "vehicle";
     name: string;
     code?: string;
     amount: number;
@@ -44,8 +44,13 @@ interface Debt {
     remainingAmount?: number; // Calculated: total - paid installments
 }
 
+import { useTheme } from "@/context/ThemeContext";
+import { useLanguage } from "@/context/LanguageContext";
+
 export default function PortfolioPage() {
     const { user, loading: authLoading } = useAuth();
+    const { privacyMode } = useTheme();
+    const { t } = useLanguage();
     const [rawAssets, setRawAssets] = useState<Asset[]>([]);
     const [rawDebts, setRawDebts] = useState<Debt[]>([]);
     const [assets, setAssets] = useState<Asset[]>([]);
@@ -56,6 +61,11 @@ export default function PortfolioPage() {
     const [refreshing, setRefreshing] = useState(false);
     const [deleteId, setDeleteId] = useState<string | null>(null);
     const [deleteType, setDeleteType] = useState<"asset" | "debt" | null>(null);
+
+    // Helper to mask values
+    const getDisplayValue = (value: number) => {
+        return privacyMode ? "***" : formatCurrency(value);
+    };
 
     useEffect(() => {
         if (authLoading) return;
@@ -220,6 +230,7 @@ export default function PortfolioPage() {
             case "crypto": return <FaBitcoin />;
             case "bes": return <FaPiggyBank />;
             case "real_estate": return <FaBuilding />;
+            case "vehicle": return <FaCar />;
             // Debt icons
             case "credit_card": return <FaCreditCard />;
             case "loan": return <FaMoneyBillWave />;
@@ -229,19 +240,7 @@ export default function PortfolioPage() {
     };
 
     const getTypeLabel = (type: string) => {
-        switch (type) {
-            case "tl": return "Nakit (TL)";
-            case "gold": return "Altın";
-            case "stock": return "Hisse Senedi";
-            case "crypto": return "Kripto Para";
-            case "bes": return "BES / Fon";
-            case "real_estate": return "Gayrimenkul";
-            // Debt labels
-            case "credit_card": return "Kredi Kartı";
-            case "loan": return "Kredi";
-            case "person": return "Kişisel Borç";
-            default: return "Diğer";
-        }
+        return t(`portfolio.types.${type}`) || t("portfolio.types.other");
     };
 
     const getCardStyle = (type: string, isDebt = false) => {
@@ -255,6 +254,7 @@ export default function PortfolioPage() {
             case "crypto": return "from-orange-500/10 to-orange-500/5 border-orange-500/20 text-orange-600 dark:text-orange-400";
             case "bes": return "from-purple-500/10 to-purple-500/5 border-purple-500/20 text-purple-600 dark:text-purple-400";
             case "real_estate": return "from-indigo-500/10 to-indigo-500/5 border-indigo-500/20 text-indigo-600 dark:text-indigo-400";
+            case "vehicle": return "from-teal-500/10 to-teal-500/5 border-teal-500/20 text-teal-600 dark:text-teal-400";
             default: return "from-gray-500/10 to-gray-500/5 border-gray-500/20 text-gray-600 dark:text-gray-400";
         }
     };
@@ -264,21 +264,21 @@ export default function PortfolioPage() {
     return (
         <div className="space-y-8">
             <div className="flex items-center justify-between">
-                <h1 className="text-3xl font-bold">Portföyüm</h1>
+                <h1 className="text-3xl font-bold">{t("portfolio.title")}</h1>
                 <div className="flex items-center gap-3">
                     <Link
                         href="/portfolio/new"
                         className="flex items-center gap-2 bg-accent-primary hover:bg-accent-primary/90 text-white px-4 py-2 rounded-xl transition-colors"
                     >
                         <FaPlus />
-                        <span className="hidden sm:inline">Varlık Ekle</span>
+                        <span className="hidden sm:inline">{t("portfolio.addAsset")}</span>
                     </Link>
                     <Link
                         href="/portfolio/new-debt"
                         className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl transition-colors"
                     >
                         <FaPlus />
-                        <span className="hidden sm:inline">Borç Ekle</span>
+                        <span className="hidden sm:inline">{t("portfolio.addDebt")}</span>
                     </Link>
                 </div>
             </div>
@@ -296,22 +296,28 @@ export default function PortfolioPage() {
                         <div className="absolute right-0 top-0 p-8 opacity-5">
                             <FaWallet size={100} />
                         </div>
-                        <p className="text-text-secondary font-medium mb-2">Toplam Varlık Değeri</p>
+                        <p className="text-text-secondary font-medium mb-2">{t("portfolio.totalWealth")}</p>
                         <div className="flex items-end gap-4">
-                            <h2 className="text-3xl font-bold">{formatCurrency(totalWealth)}</h2>
+                            <h2 className="text-3xl font-bold">{getDisplayValue(totalWealth)}</h2>
                             <button
                                 onClick={() => updatePrices(rawAssets, rawDebts)}
                                 disabled={refreshing}
                                 className="text-xs text-accent-primary hover:underline mb-2 disabled:opacity-50"
                             >
-                                {refreshing ? "..." : "Güncelle"}
+                                {refreshing ? "..." : t("portfolio.update")}
                             </button>
                         </div>
                     </div>
 
                     {/* Assets List */}
                     <div>
-                        <h2 className="text-xl font-bold text-text-primary mb-4">Varlıklar</h2>
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-xl font-bold text-text-primary">{t("portfolio.assets")}</h2>
+                            <Link href="/assets" className="flex items-center gap-2 text-sm text-text-secondary hover:text-accent-primary transition-colors">
+                                <span>{t("portfolio.allDetails")}</span>
+                                <FaArrowRight />
+                            </Link>
+                        </div>
                         <div className="space-y-4">
                             {assets.length > 0 ? (
                                 assets.map((asset) => (
@@ -336,39 +342,18 @@ export default function PortfolioPage() {
                                                     <h3 className="font-bold text-lg text-text-primary">{asset.name}</h3>
                                                     <div className="flex flex-wrap gap-2 text-xs font-medium opacity-80">
                                                         <span>{getTypeLabel(asset.type)}</span>
-                                                        <span className="hidden sm:inline">•</span>
-                                                        <span>
-                                                            {asset.type === "real_estate" || asset.type === "tl"
-                                                                ? ""
-                                                                : `${asset.amount} ${asset.type === "gold" ? "gr" : "adet"}`
-                                                            }
-                                                        </span>
                                                     </div>
                                                 </div>
                                             </div>
 
                                             <div className="text-right flex flex-col items-end">
-                                                <p className="font-bold text-lg text-text-primary">{formatCurrency(asset.currentValue || 0)}</p>
-
-                                                <div className="flex gap-2 mt-1 opacity-0 group-hover:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0">
-                                                    <Link
-                                                        href={`/portfolio/${asset.id}`}
-                                                        className="p-1.5 bg-white/50 dark:bg-black/20 hover:bg-white dark:hover:bg-black/40 rounded-lg transition-colors text-blue-500"
-                                                        title="Düzenle"
-                                                    >
-                                                        <FaEdit size={14} />
-                                                    </Link>
-                                                    <button
-                                                        onClick={() => {
-                                                            setDeleteId(asset.id);
-                                                            setDeleteType("asset");
-                                                        }}
-                                                        className="p-1.5 bg-white/50 dark:bg-black/20 hover:bg-white dark:hover:bg-black/40 rounded-lg transition-colors text-red-500"
-                                                        title="Sil"
-                                                    >
-                                                        <FaTrash size={14} />
-                                                    </button>
-                                                </div>
+                                                <p className="font-bold text-lg text-text-primary">{getDisplayValue(asset.currentValue || 0)}</p>
+                                                <p className="text-xs text-text-secondary">
+                                                    {asset.type === "real_estate" || asset.type === "tl" || asset.type === "vehicle"
+                                                        ? t("portfolio.totalValue")
+                                                        : `${asset.amount} ${asset.type === "gold" ? "gr" : "adet"}`
+                                                    }
+                                                </p>
                                             </div>
                                         </div>
                                     </div>
@@ -376,15 +361,16 @@ export default function PortfolioPage() {
                             ) : (
                                 <div className="text-center py-12 text-text-secondary glass rounded-2xl">
                                     <FaWallet className="mx-auto text-4xl mb-4 opacity-50" />
-                                    <p>Henüz bir varlık eklemediniz.</p>
+                                    <p>{t("portfolio.noAssets")}</p>
                                     <Link href="/portfolio/new" className="text-accent-primary hover:underline mt-2 inline-block">
-                                        İlk varlığını ekle
+                                        {t("portfolio.addFirstAsset")}
                                     </Link>
                                 </div>
                             )}
                         </div>
                     </div>
                 </div>
+
 
                 {/* Right Column: Debts */}
                 <div className="space-y-6">
@@ -393,13 +379,19 @@ export default function PortfolioPage() {
                         <div className="absolute right-0 top-0 p-8 opacity-5">
                             <FaCreditCard size={100} />
                         </div>
-                        <p className="text-text-secondary font-medium mb-2">Toplam Borç</p>
-                        <h2 className="text-3xl font-bold text-red-600 dark:text-red-400">{formatCurrency(totalDebt)}</h2>
+                        <p className="text-text-secondary font-medium mb-2">{t("portfolio.totalDebt")}</p>
+                        <h2 className="text-3xl font-bold text-red-600 dark:text-red-400">{getDisplayValue(totalDebt)}</h2>
                     </div>
 
                     {/* Debts List */}
                     <div>
-                        <h2 className="text-xl font-bold text-text-primary mb-4">Borçlar</h2>
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-xl font-bold text-text-primary">{t("portfolio.debts")}</h2>
+                            <Link href="/debts" className="flex items-center gap-2 text-sm text-text-secondary hover:text-accent-primary transition-colors">
+                                <span>{t("portfolio.allDetails")}</span>
+                                <FaArrowRight />
+                            </Link>
+                        </div>
                         <div className="space-y-4">
                             {debts.length > 0 ? (
                                 debts.map((debt) => (
@@ -428,91 +420,40 @@ export default function PortfolioPage() {
                                                             <>
                                                                 <span className="hidden sm:inline">•</span>
                                                                 <span className="bg-blue-500/20 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded">
-                                                                    Taksitli
-                                                                </span>
-                                                            </>
-                                                        )}
-                                                        {debt.assetType && debt.assetType !== "tl" && (
-                                                            <>
-                                                                <span className="hidden sm:inline">•</span>
-                                                                <span>
-                                                                    {debt.amount} {debt.currencyCode === "GA" ? "Gr" : debt.currencyCode}
+                                                                    {t("portfolio.installment")}
                                                                 </span>
                                                             </>
                                                         )}
                                                     </div>
-                                                    {debt.dueDate && !debt.isInstallment && (
-                                                        <p className="text-xs mt-1 opacity-70">
-                                                            Son Ödeme: {new Date(debt.dueDate.seconds * 1000).toLocaleDateString("tr-TR")}
-                                                        </p>
-                                                    )}
-                                                    {debt.isInstallment && debt.installments && debt.installments.length > 0 && (
-                                                        <div className="mt-2 pt-2 border-t border-white/10">
-                                                            {/* Total and Remaining Debt */}
-                                                            <div className="mb-2 space-y-1">
-                                                                <div className="flex justify-between text-xs">
-                                                                    <span className="opacity-70">Toplam Borç:</span>
-                                                                    <span className="font-medium">{formatCurrency(debt.amount)}</span>
-                                                                </div>
-                                                                {debt.remainingAmount !== undefined && debt.remainingAmount !== debt.amount && (
-                                                                    <div className="flex justify-between text-xs">
-                                                                        <span className="opacity-70">Kalan Borç:</span>
-                                                                        <span className="font-bold text-red-600 dark:text-red-400">
-                                                                            {formatCurrency(debt.remainingAmount)}
-                                                                        </span>
-                                                                    </div>
-                                                                )}
-                                                                {/* Debt Completed Badge */}
-                                                                {debt.remainingAmount === 0 && (
-                                                                    <div className="mt-2 p-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-500/30 rounded-lg">
-                                                                        <div className="flex items-center gap-2 text-green-700 dark:text-green-400">
-                                                                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                                                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                                                                            </svg>
-                                                                            <span className="text-xs font-semibold">Borç Tamamlandı! 🎉</span>
-                                                                        </div>
-                                                                    </div>
-                                                                )}
-                                                            </div>
 
-                                                            <p className="text-xs font-medium mb-1 opacity-90">Taksit Detayları:</p>
-                                                            <div className="max-h-40 overflow-y-auto space-y-1.5 text-xs pr-2 scrollbar-thin">
-                                                                {debt.installments.map((inst, idx) => (
-                                                                    <div key={idx} className="flex items-center gap-2 group/installment">
-                                                                        <label className="relative flex items-center cursor-pointer">
-                                                                            <input
-                                                                                type="checkbox"
-                                                                                checked={inst.isPaid || false}
-                                                                                onChange={(e) => handleInstallmentPayment(debt.id, idx, e.target.checked)}
-                                                                                className="sr-only peer"
-                                                                            />
-                                                                            <div className="w-5 h-5 border-2 border-gray-300 dark:border-white/20 rounded-md peer-checked:bg-green-500 peer-checked:border-green-500 transition-all duration-200 flex items-center justify-center peer-hover:border-green-400 peer-focus:ring-2 peer-focus:ring-green-500/20">
-                                                                                <svg
-                                                                                    className={`w-3 h-3 text-white transition-all duration-200 ${inst.isPaid ? 'scale-100 opacity-100' : 'scale-0 opacity-0'}`}
-                                                                                    fill="none"
-                                                                                    stroke="currentColor"
-                                                                                    viewBox="0 0 24 24"
-                                                                                >
-                                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                                                                                </svg>
-                                                                            </div>
-                                                                        </label>
-                                                                        <div className={`flex-1 flex justify-between items-center transition-all duration-200 ${inst.isPaid ? 'opacity-50 line-through' : 'opacity-70'}`}>
-                                                                            <span>{idx + 1}. Taksit:</span>
-                                                                            <span className="font-medium">
-                                                                                {formatCurrency(inst.amount)} - {new Date(inst.date.seconds * 1000).toLocaleDateString("tr-TR")}
-                                                                            </span>
-                                                                        </div>
-                                                                    </div>
-                                                                ))}
-                                                            </div>
+                                                    {/* Dates */}
+                                                    <div className="mt-1 text-xs opacity-70">
+                                                        {debt.isInstallment && debt.installments && debt.installments.length > 0 ? (
+                                                            <span>
+                                                                {t("portfolio.lastInstallment")}: {new Date(debt.installments[debt.installments.length - 1].date.seconds * 1000).toLocaleDateString("tr-TR")}
+                                                            </span>
+                                                        ) : debt.dueDate ? (
+                                                            <span>
+                                                                {t("portfolio.lastPayment")}: {new Date(debt.dueDate.seconds * 1000).toLocaleDateString("tr-TR")}
+                                                            </span>
+                                                        ) : null}
+                                                    </div>
+
+                                                    {/* Remaining Debt (Left Side) */}
+                                                    {debt.remainingAmount !== undefined && debt.remainingAmount !== debt.amount && (
+                                                        <div className="mt-1 text-xs text-red-600 dark:text-red-400 font-medium">
+                                                            {t("portfolio.remaining")}: {getDisplayValue(debt.remainingAmount)}
                                                         </div>
                                                     )}
+
                                                 </div>
                                             </div>
 
                                             <div className="text-right flex flex-col items-end">
-                                                <p className="font-bold text-lg text-text-primary">{formatCurrency(debt.currentValue || debt.amount)}</p>
+                                                <p className="font-bold text-lg text-text-primary">
+                                                    {getDisplayValue(debt.remainingAmount !== undefined ? debt.remainingAmount : debt.amount)}
+                                                </p>
+                                                <p className="text-xs text-text-secondary">{t("portfolio.currentDebt")}</p>
 
                                                 <div className="flex gap-2 mt-1 opacity-0 group-hover:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0">
                                                     <button
@@ -521,7 +462,7 @@ export default function PortfolioPage() {
                                                             setDeleteType("debt");
                                                         }}
                                                         className="p-1.5 bg-white/50 dark:bg-black/20 hover:bg-white dark:hover:bg-black/40 rounded-lg transition-colors text-red-500"
-                                                        title="Sil"
+                                                        title={t("common.delete")}
                                                     >
                                                         <FaTrash size={14} />
                                                     </button>
@@ -533,16 +474,16 @@ export default function PortfolioPage() {
                             ) : (
                                 <div className="text-center py-12 text-text-secondary glass rounded-2xl">
                                     <FaCreditCard className="mx-auto text-4xl mb-4 opacity-50" />
-                                    <p>Henüz bir borç eklemediniz.</p>
+                                    <p>{t("portfolio.noDebts")}</p>
                                     <Link href="/portfolio/new-debt" className="text-red-500 hover:underline mt-2 inline-block">
-                                        İlk borcunu ekle
+                                        {t("portfolio.addFirstDebt")}
                                     </Link>
                                 </div>
                             )}
                         </div>
                     </div>
                 </div>
-            </div>
+            </div >
 
             <ConfirmationModal
                 isOpen={!!deleteId}
@@ -551,10 +492,10 @@ export default function PortfolioPage() {
                     setDeleteType(null);
                 }}
                 onConfirm={handleDelete}
-                title={deleteType === "asset" ? "Varlığı Sil" : "Borcu Sil"}
-                message={`Bu ${deleteType === "asset" ? "varlığı" : "borcu"} portföyünüzden silmek istediğinize emin misiniz?`}
+                title={deleteType === "asset" ? t("portfolio.deleteAsset") : t("portfolio.deleteDebt")}
+                message={t("portfolio.deleteConfirm").replace("{type}", deleteType === "asset" ? t("portfolio.asset") : t("portfolio.debt"))}
                 variant="danger"
             />
-        </div>
+        </div >
     );
 }

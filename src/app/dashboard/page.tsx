@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { FaArrowUp, FaArrowDown, FaWallet, FaPiggyBank, FaPercent, FaCalendarAlt, FaList, FaPlus, FaMinus } from "react-icons/fa";
@@ -22,6 +23,7 @@ interface Transaction {
 
 export default function DashboardPage() {
     const { user } = useAuth();
+    const { t } = useLanguage();
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -104,22 +106,22 @@ export default function DashboardPage() {
                 <div className="flex flex-col gap-1">
                     <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
                         <span className="bg-clip-text text-transparent bg-gradient-to-r from-green-500 via-blue-500 to-blue-600">
-                            Hoş Geldin, {user?.displayName?.split(" ")[0] || "Kullanıcı"}
+                            {t("dashboard.welcome").replace("{name}", user?.displayName?.split(" ")[0] || "Kullanıcı")}
                         </span>
                     </h1>
-                    <p className="text-text-secondary text-lg">Finansal özgürlüğüne giden yolda bugünkü durumun.</p>
+                    <p className="text-text-secondary text-lg">{t("dashboard.subtitle")}</p>
                 </div>
 
                 <div className="flex gap-3 w-full md:w-auto">
                     <Link href="/incomes/new">
                         <Button className="gap-2 bg-green-600 hover:bg-green-700 text-white border-none shadow-lg shadow-green-500/20">
-                            <FaPlus /> Yeni Gelir
+                            <FaPlus /> {t("dashboard.newIncome")}
                         </Button>
                     </Link>
 
                     <Link href="/expenses/new">
                         <Button className="gap-2 bg-red-600 hover:bg-red-700 text-white border-none shadow-lg shadow-red-500/20">
-                            <FaPlus /> Yeni Harcama
+                            <FaPlus /> {t("dashboard.newExpense")}
                         </Button>
                     </Link>
                 </div>
@@ -136,12 +138,12 @@ export default function DashboardPage() {
                                 <FaArrowUp className="text-xl" />
                             </div>
                             <span className="text-xs font-medium px-2 py-1 rounded-lg bg-green-100 dark:bg-green-500/10 text-green-600 dark:text-green-400">
-                                + Gelir
+                                + {t("dashboard.income")}
                             </span>
                         </div>
                         <div className="mt-4">
                             <h3 className="text-3xl font-bold text-text-primary">{formatCurrency(monthlyIncome)}</h3>
-                            <p className="text-sm text-text-secondary mt-1">Bu ayki toplam gelir</p>
+                            <p className="text-sm text-text-secondary mt-1">{t("dashboard.monthlyIncome")}</p>
                         </div>
                     </div>
                 </div>
@@ -155,12 +157,12 @@ export default function DashboardPage() {
                                 <FaArrowDown className="text-xl" />
                             </div>
                             <span className="text-xs font-medium px-2 py-1 rounded-lg bg-red-100 dark:bg-red-500/10 text-red-600 dark:text-red-400">
-                                - Gider
+                                - {t("dashboard.expense")}
                             </span>
                         </div>
                         <div className="mt-4">
                             <h3 className="text-3xl font-bold text-text-primary">{formatCurrency(monthlyExpense)}</h3>
-                            <p className="text-sm text-text-secondary mt-1">Bu ayki toplam harcama</p>
+                            <p className="text-sm text-text-secondary mt-1">{t("dashboard.monthlyExpense")}</p>
                         </div>
                     </div>
                 </div>
@@ -174,14 +176,14 @@ export default function DashboardPage() {
                                 <FaWallet className="text-xl" />
                             </div>
                             <span className={clsx("text-xs font-medium px-2 py-1 rounded-lg", monthlySavings >= 0 ? "bg-accent-primary/10 text-accent-primary" : "bg-red-100 text-red-500")}>
-                                Net Durum
+                                {t("dashboard.netStatus")}
                             </span>
                         </div>
                         <div className="mt-4">
                             <h3 className={clsx("text-3xl font-bold", monthlySavings >= 0 ? "text-accent-primary" : "text-red-500")}>
                                 {formatCurrency(monthlySavings)}
                             </h3>
-                            <p className="text-sm text-text-secondary mt-1">Bu ayki net tasarruf</p>
+                            <p className="text-sm text-text-secondary mt-1">{t("dashboard.monthlySavings")}</p>
                         </div>
                     </div>
                 </div>
@@ -205,7 +207,7 @@ export default function DashboardPage() {
                             <h3 className={clsx("text-3xl font-bold", savingsRate >= 20 ? "text-green-500" : savingsRate > 0 ? "text-yellow-500" : "text-red-500")}>
                                 %{savingsRate.toFixed(1)}
                             </h3>
-                            <p className="text-sm text-text-secondary mt-1">Tasarruf oranı</p>
+                            <p className="text-sm text-text-secondary mt-1">{t("dashboard.savingsRate")}</p>
                         </div>
                     </div>
                 </div>
@@ -218,7 +220,7 @@ export default function DashboardPage() {
                     <div className="flex items-center justify-between">
                         <h2 className="text-2xl font-bold flex items-center gap-2">
                             <FaList className="text-accent-primary" />
-                            Son Hareketler
+                            {t("dashboard.recentTransactions")}
                         </h2>
                     </div>
 
@@ -252,7 +254,7 @@ export default function DashboardPage() {
                             </div>
                         ) : (
                             <div className="p-12 text-center text-text-secondary">
-                                <p>Henüz bir hareket yok.</p>
+                                <p>{t("dashboard.noTransactions")}</p>
                             </div>
                         )}
                     </div>
@@ -262,7 +264,7 @@ export default function DashboardPage() {
                 <div className="space-y-6">
                     <h2 className="text-2xl font-bold flex items-center gap-2">
                         <FaCalendarAlt className="text-accent-secondary" />
-                        Yıllık Bakış
+                        {t("dashboard.yearlyOverview")}
                     </h2>
 
                     <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-900 to-black text-white p-8 shadow-2xl">
@@ -272,15 +274,15 @@ export default function DashboardPage() {
 
                         <div className="relative z-10 space-y-8">
                             <div>
-                                <p className="text-gray-400 text-sm uppercase tracking-wider font-medium">{currentYear} ÖZETİ</p>
-                                <h3 className="text-xl font-bold mt-1">Finansal Durum</h3>
+                                <p className="text-gray-400 text-sm uppercase tracking-wider font-medium">{t("dashboard.yearSummary").replace("{year}", currentYear)}</p>
+                                <h3 className="text-xl font-bold mt-1">{t("dashboard.financialStatus")}</h3>
                             </div>
 
                             <div className="space-y-6">
                                 <div className="flex flex-col items-start gap-2 p-4 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm">
                                     <div className="flex items-center gap-3">
                                         <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                                        <span className="text-gray-300 text-sm">Toplam Gelir</span>
+                                        <span className="text-gray-300 text-sm">{t("dashboard.totalIncome")}</span>
                                     </div>
                                     <span className="font-bold text-green-400 text-lg">{formatCurrency(yearlyIncome)}</span>
                                 </div>
@@ -288,14 +290,14 @@ export default function DashboardPage() {
                                 <div className="flex flex-col items-start gap-2 p-4 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm">
                                     <div className="flex items-center gap-3">
                                         <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                                        <span className="text-gray-300 text-sm">Toplam Gider</span>
+                                        <span className="text-gray-300 text-sm">{t("dashboard.totalExpense")}</span>
                                     </div>
                                     <span className="font-bold text-red-400 text-lg">{formatCurrency(yearlyExpense)}</span>
                                 </div>
 
                                 <div className="pt-4 border-t border-white/10">
                                     <div className="flex flex-col gap-2">
-                                        <span className="text-gray-400 font-medium text-sm">Net Tasarruf</span>
+                                        <span className="text-gray-400 font-medium text-sm">{t("dashboard.netSavings")}</span>
                                         <span className={clsx("text-2xl font-bold", yearlySavings >= 0 ? "text-white" : "text-red-400")}>
                                             {formatCurrency(yearlySavings)}
                                         </span>

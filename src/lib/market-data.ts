@@ -156,3 +156,65 @@ export const TEFAS_FUNDS = [
     { value: "YTD", label: "YTD - Yapı Kredi Portföy Yabancı Teknoloji" },
     { value: "IKP", label: "IKP - İş Portföy Yenilenebilir Enerji" }
 ];
+
+export const BES_FUNDS = [
+    // Garanti Emeklilik
+    { value: "HES", label: "HES - Garanti Emeklilik Hisse Senedi Emeklilik Yatırım Fonu" },
+    { value: "GEG", label: "GEG - Garanti Emeklilik Büyüme Amaçlı Hisse Senedi Emeklilik Yatırım Fonu" },
+    { value: "GED", label: "GED - Garanti Emeklilik Dengeli Emeklilik Yatırım Fonu" },
+    { value: "GEA", label: "GEA - Garanti Emeklilik Gelir Amaçlı Kamu Dış Borçlanma Araçları Emeklilik Yatırım Fonu" },
+    { value: "GEK", label: "GEK - Garanti Emeklilik Gelir Amaçlı Kamu Borçlanma Araçları Emeklilik Yatırım Fonu" },
+
+    // Anadolu Hayat Emeklilik
+    { value: "AHE", label: "AHE - Anadolu Hayat Emeklilik Hisse Senedi Emeklilik Yatırım Fonu" },
+    { value: "AHD", label: "AHD - Anadolu Hayat Emeklilik Dengeli Emeklilik Yatırım Fonu" },
+    { value: "AHG", label: "AHG - Anadolu Hayat Emeklilik Gelir Amaçlı Kamu Borçlanma Araçları Emeklilik Yatırım Fonu" },
+    { value: "AHB", label: "AHB - Anadolu Hayat Emeklilik Büyüme Amaçlı Hisse Senedi Emeklilik Yatırım Fonu" },
+
+    // Allianz Yaşam ve Emeklilik
+    { value: "AYE", label: "AYE - Allianz Yaşam ve Emeklilik Hisse Senedi Emeklilik Yatırım Fonu" },
+    { value: "AYD", label: "AYD - Allianz Yaşam ve Emeklilik Dengeli Emeklilik Yatırım Fonu" },
+    { value: "AYG", label: "AYG - Allianz Yaşam ve Emeklilik Gelir Amaçlı Kamu Borçlanma Araçları Emeklilik Yatırım Fonu" },
+    { value: "AYB", label: "AYB - Allianz Yaşam ve Emeklilik Büyüme Amaçlı Hisse Senedi Emeklilik Yatırım Fonu" },
+
+    // Avivasa Emeklilik ve Hayat
+    { value: "AVE", label: "AVE - Avivasa Emeklilik ve Hayat Hisse Senedi Emeklilik Yatırım Fonu" },
+    { value: "AVD", label: "AVD - Avivasa Emeklilik ve Hayat Dengeli Emeklilik Yatırım Fonu" },
+    { value: "AVG", label: "AVG - Avivasa Emeklilik ve Hayat Gelir Amaçlı Kamu Borçlanma Araçları Emeklilik Yatırım Fonu" },
+    { value: "AVB", label: "AVB - Avivasa Emeklilik ve Hayat Büyüme Amaçlı Hisse Senedi Emeklilik Yatırım Fonu" },
+
+    // Vakıf Emeklilik
+    { value: "VEH", label: "VEH - Vakıf Emeklilik Hisse Senedi Emeklilik Yatırım Fonu" },
+    { value: "VED", label: "VED - Vakıf Emeklilik Dengeli Emeklilik Yatırım Fonu" },
+    { value: "VEG", label: "VEG - Vakıf Emeklilik Gelir Amaçlı Kamu Borçlanma Araçları Emeklilik Yatırım Fonu" },
+    { value: "VEB", label: "VEB - Vakıf Emeklilik Büyüme Amaçlı Hisse Senedi Emeklilik Yatırım Fonu" },
+
+    // Ziraat Hayat ve Emeklilik
+    { value: "ZHE", label: "ZHE - Ziraat Hayat ve Emeklilik Hisse Senedi Emeklilik Yatırım Fonu" },
+    { value: "ZHD", label: "ZHD - Ziraat Hayat ve Emeklilik Dengeli Emeklilik Yatırım Fonu" },
+    { value: "ZHG", label: "ZHG - Ziraat Hayat ve Emeklilik Gelir Amaçlı Kamu Borçlanma Araçları Emeklilik Yatırım Fonu" },
+    { value: "ZHB", label: "ZHB - Ziraat Hayat ve Emeklilik Büyüme Amaçlı Hisse Senedi Emeklilik Yatırım Fonu" },
+
+    // NN Hayat ve Emeklilik
+    { value: "NNE", label: "NNE - NN Hayat ve Emeklilik Hisse Senedi Emeklilik Yatırım Fonu" },
+    { value: "NND", label: "NND - NN Hayat ve Emeklilik Dengeli Emeklilik Yatırım Fonu" },
+    { value: "NNG", label: "NNG - NN Hayat ve Emeklilik Gelir Amaçlı Kamu Borçlanma Araçları Emeklilik Yatırım Fonu" },
+    { value: "NNB", label: "NNB - NN Hayat ve Emeklilik Büyüme Amaçlı Hisse Senedi Emeklilik Yatırım Fonu" },
+
+    // Aegon Emeklilik ve Hayat
+    { value: "AEE", label: "AEE - Aegon Emeklilik ve Hayat Hisse Senedi Emeklilik Yatırım Fonu" },
+    { value: "AED", label: "AED - Aegon Emeklilik ve Hayat Dengeli Emeklilik Yatırım Fonu" },
+    { value: "AEG", label: "AEG - Aegon Emeklilik ve Hayat Gelir Amaçlı Kamu Borçlanma Araçları Emeklilik Yatırım Fonu" },
+    { value: "AEB", label: "AEB - Aegon Emeklilik ve Hayat Büyüme Amaçlı Hisse Senedi Emeklilik Yatırım Fonu" },
+
+    // Katılım Emeklilik
+    { value: "KTE", label: "KTE - Katılım Emeklilik ve Hayat Katılım Hisse Senedi Emeklilik Yatırım Fonu" },
+    { value: "KTD", label: "KTD - Katılım Emeklilik ve Hayat Katılım Dengeli Emeklilik Yatırım Fonu" },
+    { value: "KTG", label: "KTG - Katılım Emeklilik ve Hayat Katılım Kira Sertifikaları Emeklilik Yatırım Fonu" },
+
+    // Fiba Emeklilik
+    { value: "FBE", label: "FBE - Fiba Emeklilik ve Hayat Hisse Senedi Emeklilik Yatırım Fonu" },
+    { value: "FBD", label: "FBD - Fiba Emeklilik ve Hayat Dengeli Emeklilik Yatırım Fonu" },
+    { value: "FBG", label: "FBG - Fiba Emeklilik ve Hayat Gelir Amaçlı Kamu Borçlanma Araçları Emeklilik Yatırım Fonu" },
+];
+

@@ -7,6 +7,7 @@ import { db } from "@/lib/firebase";
 import { FaTrophy, FaEdit, FaCheck, FaTimes } from "react-icons/fa";
 import CurrencyInput from "./CurrencyInput";
 import { formatCurrency } from "@/lib/utils";
+import { useLanguage } from "@/context/LanguageContext";
 import clsx from "clsx";
 
 interface FinancialGoalCardProps {
@@ -15,6 +16,7 @@ interface FinancialGoalCardProps {
 
 export default function FinancialGoalCard({ totalWealth }: FinancialGoalCardProps) {
     const { user } = useAuth();
+    const { t } = useLanguage();
     const [goal, setGoal] = useState<number | null>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [tempGoal, setTempGoal] = useState("");
@@ -72,8 +74,8 @@ export default function FinancialGoalCard({ totalWealth }: FinancialGoalCardProp
                         <FaTrophy size={24} />
                     </div>
                     <div>
-                        <h3 className="font-bold text-lg text-text-primary">Finansal Özgürlük Hedefi Belirle</h3>
-                        <p className="text-sm text-text-secondary">Kendine bir hedef koy ve ilerlemeni takip et.</p>
+                        <h3 className="font-bold text-lg text-text-primary">{t("financialGoal.setGoal")}</h3>
+                        <p className="text-sm text-text-secondary">{t("financialGoal.setGoalDesc")}</p>
                     </div>
                 </div>
                 <FaEdit className="text-gray-400 group-hover:text-accent-primary transition-colors" />
@@ -94,7 +96,7 @@ export default function FinancialGoalCard({ totalWealth }: FinancialGoalCardProp
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="font-bold text-lg flex items-center gap-2">
                         <FaTrophy className="text-yellow-500" />
-                        Finansal Özgürlük Hedefi
+                        {t("financialGoal.goalTitle")}
                     </h3>
                     {!isEditing && (
                         <button onClick={() => { setTempGoal(goal?.toString() || ""); setIsEditing(true); }} className="text-text-secondary hover:text-accent-primary transition-colors">
@@ -109,7 +111,7 @@ export default function FinancialGoalCard({ totalWealth }: FinancialGoalCardProp
                             <CurrencyInput
                                 value={tempGoal}
                                 onChange={setTempGoal}
-                                placeholder="Hedef Tutar (TL)"
+                                placeholder={t("financialGoal.goalPlaceholder")}
                                 autoFocus
                             />
                         </div>

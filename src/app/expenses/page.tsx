@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { collection, query, where, orderBy, onSnapshot, deleteDoc, doc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import Button from "@/components/Button";
@@ -26,6 +27,7 @@ import Loader from "@/components/Loader";
 
 export default function ExpensesPage() {
     const { user, loading: authLoading } = useAuth();
+    const { t, language } = useLanguage();
     const [expenses, setExpenses] = useState<Transaction[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -48,10 +50,9 @@ export default function ExpensesPage() {
 
     const [error, setError] = useState<string | null>(null);
 
-    const months = [
-        "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
-        "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"
-    ];
+    const months = Array.from({ length: 12 }, (_, i) => {
+        return new Date(0, i).toLocaleString(language === 'en' ? 'en-US' : 'tr-TR', { month: 'long' });
+    });
 
     const handleMonthSelect = (index: number) => {
         const newDate = new Date(selectedDate);
@@ -81,17 +82,15 @@ export default function ExpensesPage() {
             await Promise.all(deletePromises);
         } catch (error) {
             console.error("Error resetting month:", error);
-            alert("Sıfırlama işlemi sırasında bir hata oluştu.");
+            alert(t("expensesPage.resetError"));
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        console.log("ExpensesPage useEffect:", { authLoading, user: user?.uid, selectedDate });
         if (authLoading) return;
 
         if (!user) {
-            console.log("No user, stopping loading");
             setLoading(false);
             return;
         }
@@ -115,7 +114,6 @@ export default function ExpensesPage() {
 
             const unsubscribe = onSnapshot(q,
                 (snapshot) => {
-                    console.log("Snapshot received:", snapshot.size, "docs");
                     const data = snapshot.docs.map((doc) => ({
                         id: doc.id,
                         ...doc.data(),
@@ -184,7 +182,7 @@ export default function ExpensesPage() {
             setEditForm({});
         } catch (error) {
             console.error("Error updating document: ", error);
-            alert("Güncelleme sırasında bir hata oluştu.");
+            alert(t("expensesPage.updateError"));
         }
     };
 
@@ -203,33 +201,33 @@ export default function ExpensesPage() {
             }
         } catch (error) {
             console.error("Error deleting document: ", error);
-            alert("Silme işlemi sırasında bir hata oluştu.");
+            alert(t("expensesPage.deleteError"));
         }
     };
 
     return (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                <h1 className="text-3xl font-bold">Harcamalarım</h1>
+                <h1 className="text-3xl font-bold">{t("expensesPage.title")}</h1>
                 <div className="flex gap-2">
                     {expenses.length > 0 && (
                         <Button
                             variant="secondary"
                             onClick={handleResetClick}
                             className="gap-2 text-red-500"
-                            title="Bu aydaki tüm harcamaları sil"
+                            title={t("expensesPage.deleteAllMonth")}
                         >
-                            <FaTrash /> <span className="hidden sm:inline">Bu Ayın Harcamalarını Sil</span>
+                            <FaTrash /> <span className="hidden sm:inline">{t("expensesPage.deleteAllMonth")}</span>
                         </Button>
                     )}
                     <Link href="/expenses/upload-statement">
                         <Button variant="secondary" className="gap-2">
-                            <FaFileUpload /> Ekstre Yükle
+                            <FaFileUpload /> {t("expensesPage.uploadStatement")}
                         </Button>
                     </Link>
                     <Link href="/expenses/new">
                         <Button className="gap-2">
-                            <FaPlus /> Yeni Harcama
+                            <FaPlus /> {t("expensesPage.newExpense")}
                         </Button>
                     </Link>
                 </div>
@@ -267,7 +265,7 @@ export default function ExpensesPage() {
                                 key={month}
                                 onClick={() => handleMonthSelect(index)}
                                 className={clsx(
-                                    "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap shrink-0",
+                                    "px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 whitespace-nowrap shrink-0",
                                     isSelected
                                         ? "bg-accent-primary text-white shadow-lg shadow-accent-primary/25"
                                         : isCurrentMonth
@@ -289,7 +287,7 @@ export default function ExpensesPage() {
                     <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" />
                     <input
                         type="text"
-                        placeholder="Ara (Kategori, Açıklama)..."
+                        placeholder={t("expensesPage.searchPlaceholder")}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full bg-white/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl pl-10 pr-4 py-2.5 focus:border-accent-primary outline-none transition-colors"
@@ -302,19 +300,19 @@ export default function ExpensesPage() {
                         value={selectedCategory}
                         onChange={setSelectedCategory}
                         options={CATEGORIES.map(c => ({ value: c, label: c }))}
-                        placeholder="Tüm Kategoriler"
+                        placeholder={t("expensesPage.allCategories")}
                     />
 
                     <CustomSelect
                         value={selectedPaymentMethod}
                         onChange={setSelectedPaymentMethod}
                         options={PAYMENT_TYPES.map(t => ({ value: t, label: t }))}
-                        placeholder="Tüm Ödeme Tipleri"
+                        placeholder={t("expensesPage.allPaymentTypes")}
                     />
 
                     {(searchTerm || selectedCategory || selectedPaymentMethod) && (
                         <Button variant="ghost" onClick={clearFilters} className="px-3 h-[42px]">
-                            Temizle
+                            {t("expensesPage.clear")}
                         </Button>
                     )}
                 </div>
@@ -323,7 +321,7 @@ export default function ExpensesPage() {
             {/* List */}
             {error ? (
                 <div className="p-4 bg-red-500/10 border border-red-500/50 rounded-xl text-red-500 text-center">
-                    <p className="font-bold">Bir hata oluştu:</p>
+                    <p className="font-bold">{t("expensesPage.error")}:</p>
                     <p className="text-sm">{error}</p>
                     {error.includes("index") && (
                         <p className="text-xs mt-2">
@@ -335,7 +333,7 @@ export default function ExpensesPage() {
                 <Loader />
             ) : filteredExpenses.length === 0 ? (
                 <div className="text-center py-10 text-text-secondary bg-white/5 rounded-xl border border-white/5">
-                    {expenses.length === 0 ? "Bu ay için harcama kaydı bulunmuyor." : "Filtrelere uygun kayıt bulunamadı."}
+                    {expenses.length === 0 ? t("expensesPage.noExpenses") : t("expensesPage.noResults")}
                 </div>
             ) : (
                 <div className="grid gap-4">
@@ -370,7 +368,7 @@ export default function ExpensesPage() {
                                             -{formatCurrency(expense.amount)}
                                         </div>
                                         <div className="text-xs text-text-secondary">
-                                            {new Date(expense.date.seconds * 1000).toLocaleDateString("tr-TR")}
+                                            {new Date(expense.date.seconds * 1000).toLocaleDateString(language === 'en' ? 'en-US' : 'tr-TR')}
                                         </div>
                                     </div>
                                 </div>
@@ -390,13 +388,13 @@ export default function ExpensesPage() {
                                                             value={editForm.amount}
                                                             onChange={(e) => setEditForm({ ...editForm, amount: parseFloat(e.target.value) })}
                                                             className="w-full bg-white/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm"
-                                                            placeholder="Tutar"
+                                                            placeholder={t("expensesPage.amount")}
                                                         />
                                                         <CustomSelect
                                                             value={editForm.category || ""}
                                                             onChange={(val) => setEditForm({ ...editForm, category: val })}
                                                             options={CATEGORIES.map(c => ({ value: c, label: c }))}
-                                                            placeholder="Kategori"
+                                                            placeholder={t("expensesPage.category")}
                                                         />
                                                     </div>
                                                     <input
@@ -404,20 +402,20 @@ export default function ExpensesPage() {
                                                         value={editForm.description || ""}
                                                         onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
                                                         className="w-full bg-white/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm"
-                                                        placeholder="Açıklama"
+                                                        placeholder={t("expensesPage.description")}
                                                     />
                                                     <CustomSelect
                                                         value={editForm.paymentMethod || ""}
                                                         onChange={(val) => setEditForm({ ...editForm, paymentMethod: val })}
                                                         options={PAYMENT_TYPES.map(t => ({ value: t, label: t }))}
-                                                        placeholder="Ödeme Yöntemi"
+                                                        placeholder={t("expensesPage.paymentMethod")}
                                                     />
                                                     <div className="flex justify-end gap-2 pt-2">
                                                         <Button variant="ghost" size="sm" onClick={handleCancelEdit}>
-                                                            İptal
+                                                            {t("common.cancel")}
                                                         </Button>
                                                         <Button size="sm" onClick={handleUpdate} className="gap-2">
-                                                            <FaSave /> Kaydet
+                                                            <FaSave /> {t("common.save")}
                                                         </Button>
                                                     </div>
                                                 </div>
@@ -426,20 +424,20 @@ export default function ExpensesPage() {
                                                     <div className="space-y-3 text-sm flex-1">
                                                         {expense.description && (
                                                             <div>
-                                                                <span className="block text-xs font-medium text-text-secondary uppercase tracking-wider mb-1">Açıklama</span>
+                                                                <span className="block text-xs font-medium text-text-secondary uppercase tracking-wider mb-1">{t("expensesPage.description")}</span>
                                                                 <p className="text-text-primary">{expense.description}</p>
                                                             </div>
                                                         )}
                                                         <div className="flex flex-wrap gap-4 text-xs text-text-secondary pt-2">
-                                                            <span>İşlem ID: {expense.id.slice(0, 8)}...</span>
-                                                            <span>{new Date(expense.date.seconds * 1000).toLocaleString("tr-TR")}</span>
+                                                            <span>{t("expensesPage.transactionId")}: {expense.id.slice(0, 8)}...</span>
+                                                            <span>{new Date(expense.date.seconds * 1000).toLocaleString(language === 'en' ? 'en-US' : 'tr-TR')}</span>
                                                         </div>
                                                     </div>
 
                                                     <div className="flex items-center gap-2 ml-4">
                                                         {deletingId === expense.id ? (
                                                             <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-5">
-                                                                <span className="text-xs text-red-500 font-medium">Silinsin mi?</span>
+                                                                <span className="text-xs text-red-500 font-medium">{t("expensesPage.deleteConfirm")}</span>
                                                                 <button
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();
@@ -467,7 +465,7 @@ export default function ExpensesPage() {
                                                                         handleEditClick(expense);
                                                                     }}
                                                                     className="p-2 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                                                                    title="Düzenle"
+                                                                    title={t("common.edit")}
                                                                 >
                                                                     <FaEdit size={16} />
                                                                 </button>
@@ -477,7 +475,7 @@ export default function ExpensesPage() {
                                                                         handleDeleteClick(expense.id);
                                                                     }}
                                                                     className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                                                                    title="Sil"
+                                                                    title={t("common.delete")}
                                                                 >
                                                                     <FaTrash size={16} />
                                                                 </button>
@@ -499,9 +497,9 @@ export default function ExpensesPage() {
                 isOpen={isResetModalOpen}
                 onClose={() => setIsResetModalOpen(false)}
                 onConfirm={handleConfirmReset}
-                title="Tüm Harcamaları Sil"
-                message={`${months[selectedDate.getMonth()]} ${selectedDate.getFullYear()} dönemine ait TÜM harcamaları silmek istediğinize emin misiniz? Bu işlem geri alınamaz!`}
-                confirmText="Evet, Sil"
+                title={t("expensesPage.deleteMonthConfirmTitle")}
+                message={t("expensesPage.deleteMonthConfirmMessage").replace("{date}", `${months[selectedDate.getMonth()]} ${selectedDate.getFullYear()}`)}
+                confirmText={t("expensesPage.confirmDelete")}
                 variant="danger"
             />
         </div>
