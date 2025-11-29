@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "@/context/ThemeContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { collection, query, where, onSnapshot, deleteDoc, doc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { FaPlus, FaCreditCard, FaMoneyBillWave, FaUserFriends, FaQuestionCircle, FaTrash, FaArrowLeft, FaCheck, FaChevronDown, FaChevronUp } from "react-icons/fa";
@@ -35,6 +37,8 @@ interface Debt {
 
 export default function DebtsPage() {
     const { user, loading: authLoading } = useAuth();
+    const { privacyMode } = useTheme();
+    const { t } = useLanguage();
     const [rawDebts, setRawDebts] = useState<Debt[]>([]);
     const [debts, setDebts] = useState<Debt[]>([]);
     const [loading, setLoading] = useState(true);
@@ -44,10 +48,7 @@ export default function DebtsPage() {
     // Date Filter State
     const [selectedDate, setSelectedDate] = useState(new Date());
 
-    const months = [
-        "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
-        "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"
-    ];
+    const months = t("debtsPage.months") as unknown as string[];
 
     const handleMonthSelect = (index: number) => {
         const newDate = new Date(selectedDate);
@@ -97,6 +98,24 @@ export default function DebtsPage() {
             setDebts([]);
         }
     }, [rawDebts]);
+
+    // Scroll to selected month
+    useEffect(() => {
+        const container = document.getElementById("month-scroll-container");
+        const selected = document.getElementById("selected-month");
+
+        if (container && selected) {
+            const containerWidth = container.offsetWidth;
+            const selectedLeft = selected.offsetLeft;
+            const selectedWidth = selected.offsetWidth;
+
+            // Center the selected item
+            container.scrollTo({
+                left: selectedLeft - (containerWidth / 2) + (selectedWidth / 2),
+                behavior: "smooth"
+            });
+        }
+    }, [selectedDate]);
 
     const updatePrices = async (currentDebts: Debt[]) => {
         const updatedDebts = await Promise.all(currentDebts.map(async (debt) => {
@@ -167,12 +186,7 @@ export default function DebtsPage() {
     };
 
     const getTypeLabel = (type: string) => {
-        switch (type) {
-            case "credit_card": return "Kredi Kartı";
-            case "loan": return "Kredi";
-            case "person": return "Kişisel Borç";
-            default: return "Diğer";
-        }
+        return t(`portfolio.types.${type}`) || t("portfolio.types.other");
     };
 
     const getCardStyle = (type: string) => {
@@ -225,6 +239,10 @@ export default function DebtsPage() {
     const monthlyDebts = getMonthlyDebts();
     const monthlyTotal = monthlyDebts.reduce((sum, debt) => sum + (debt.isPaid ? 0 : debt.displayAmount), 0);
 
+    // Helper to mask values
+    const maskCurrency = (val: number) => privacyMode ? "***" : formatCurrency(val);
+    const maskDate = (date: Date) => privacyMode ? "**/**/****" : date.toLocaleDateString("tr-TR");
+
     if (loading) return <Loader />;
 
     return (
@@ -234,19 +252,19 @@ export default function DebtsPage() {
                     <Link href="/portfolio" className="p-2 hover:bg-white/10 rounded-lg transition-colors">
                         <FaArrowLeft />
                     </Link>
-                    <h1 className="text-3xl font-bold">Borçlarım</h1>
+                    <h1 className="text-3xl font-bold">{t("debtsPage.title")}</h1>
                 </div>
                 <Link
                     href="/portfolio/new-debt"
                     className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl transition-colors"
                 >
                     <FaPlus />
-                    <span className="hidden sm:inline">Borç Ekle</span>
+                    <span className="hidden sm:inline">{t("debtsPage.addDebt")}</span>
                 </Link>
             </div>
 
             {/* Month & Year Selector */}
-            <div className="glass p-2 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4 overflow-x-auto">
+            <div className="glass p-2 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-4 shrink-0">
                     {/* Year Selector */}
                     <div className="flex items-center gap-2 bg-white/5 rounded-lg p-1">
@@ -267,7 +285,10 @@ export default function DebtsPage() {
                 </div>
 
                 {/* Month List */}
-                <div className="flex flex-1 overflow-x-auto pb-2 md:pb-0 gap-2 no-scrollbar mask-linear-fade">
+                <div
+                    id="month-scroll-container"
+                    className="flex flex-1 w-full overflow-x-auto pb-2 md:pb-0 gap-2 no-scrollbar mask-linear-fade scroll-smooth"
+                >
                     {months.map((month, index) => {
                         const isSelected = selectedDate.getMonth() === index;
                         const isCurrentMonth = new Date().getMonth() === index && new Date().getFullYear() === selectedDate.getFullYear();
@@ -275,6 +296,7 @@ export default function DebtsPage() {
                         return (
                             <button
                                 key={month}
+                                id={isSelected ? "selected-month" : ""}
                                 onClick={() => handleMonthSelect(index)}
                                 className={clsx(
                                     "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap shrink-0",
@@ -297,8 +319,8 @@ export default function DebtsPage() {
                 <div className="absolute right-0 top-0 p-8 opacity-5">
                     <FaCreditCard size={100} />
                 </div>
-                <p className="text-text-secondary font-medium mb-2">Bu Ay Ödenecek</p>
-                <h2 className="text-3xl font-bold text-red-600 dark:text-red-400">{formatCurrency(monthlyTotal)}</h2>
+                <p className="text-text-secondary font-medium mb-2">{t("debtsPage.monthlyPayment")}</p>
+                <h2 className="text-3xl font-bold text-red-600 dark:text-red-400">{maskCurrency(monthlyTotal)}</h2>
             </div>
 
             {/* Debts List */}
@@ -330,13 +352,13 @@ export default function DebtsPage() {
                                                 <>
                                                     <span className="hidden sm:inline">•</span>
                                                     <span className="bg-blue-500/20 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded">
-                                                        {debt.installmentIndex! + 1}. Taksit
+                                                        {debt.installmentIndex! + 1}. {t("debtsPage.installment")}
                                                     </span>
                                                 </>
                                             )}
                                         </div>
                                         <p className="text-xs mt-1 opacity-70">
-                                            Son Ödeme: {new Date(debt.displayDate.seconds * 1000).toLocaleDateString("tr-TR")}
+                                            {t("portfolio.lastPayment")}: {maskDate(new Date(debt.displayDate.seconds * 1000))}
                                         </p>
 
                                         {/* Show expandable indicator for installment debts */}
@@ -356,12 +378,12 @@ export default function DebtsPage() {
                                                 {expandedId === debt.id ? (
                                                     <>
                                                         <FaChevronUp size={10} />
-                                                        <span>Taksitleri Gizle</span>
+                                                        <span>{t("debtsPage.hideInstallments")}</span>
                                                     </>
                                                 ) : (
                                                     <>
                                                         <FaChevronDown size={10} />
-                                                        <span>Tüm Taksitleri Gör</span>
+                                                        <span>{t("debtsPage.showInstallments")}</span>
                                                     </>
                                                 )}
                                             </button>
@@ -372,10 +394,10 @@ export default function DebtsPage() {
                                 <div className="text-right flex flex-col items-end">
                                     <div className="flex flex-col items-end">
                                         <p className={clsx("font-bold text-lg", debt.isPaid ? "text-green-500 line-through opacity-50" : "text-text-primary")}>
-                                            {formatCurrency(debt.displayAmount)}
+                                            {maskCurrency(debt.displayAmount)}
                                         </p>
                                         <p className="text-xs text-text-secondary">
-                                            {debt.isPaid ? "Ödendi" : "Ödenecek Tutar"}
+                                            {debt.isPaid ? t("debtsPage.paid") : t("debtsPage.toPay")}
                                         </p>
                                     </div>
 
@@ -398,10 +420,10 @@ export default function DebtsPage() {
                                                     {debt.isPaid ? (
                                                         <>
                                                             <FaCheck size={12} />
-                                                            <span>Ödendi</span>
+                                                            <span>{t("debtsPage.paid")}</span>
                                                         </>
                                                     ) : (
-                                                        <span>Öde</span>
+                                                        <span>{t("debtsPage.pay")}</span>
                                                     )}
                                                 </div>
                                             </label>
@@ -410,7 +432,7 @@ export default function DebtsPage() {
                                                 <button
                                                     onClick={() => setDeleteId(debt.id)}
                                                     className="p-1.5 bg-white/50 dark:bg-black/20 hover:bg-white dark:hover:bg-black/40 rounded-lg transition-colors text-red-500"
-                                                    title="Sil"
+                                                    title={t("common.delete")}
                                                 >
                                                     <FaTrash size={14} />
                                                 </button>
@@ -429,14 +451,14 @@ export default function DebtsPage() {
                                         </div>
                                         <div className="flex-1 space-y-2">
                                             <div className="flex justify-between text-xs mb-3">
-                                                <span className="opacity-70">Toplam Borç:</span>
-                                                <span className="font-medium">{formatCurrency(debt.amount)}</span>
+                                                <span className="opacity-70">{t("debtsPage.totalDebt")}:</span>
+                                                <span className="font-medium">{maskCurrency(debt.amount)}</span>
                                             </div>
                                             {debt.remainingAmount !== undefined && debt.remainingAmount !== debt.amount && (
                                                 <div className="flex justify-between text-xs mb-3">
-                                                    <span className="opacity-70">Kalan Borç:</span>
+                                                    <span className="opacity-70">{t("debtsPage.remainingDebt")}:</span>
                                                     <span className="font-bold text-red-600 dark:text-red-400">
-                                                        {formatCurrency(debt.remainingAmount)}
+                                                        {maskCurrency(debt.remainingAmount)}
                                                     </span>
                                                 </div>
                                             )}
@@ -474,9 +496,8 @@ export default function DebtsPage() {
                                                             </div>
                                                         </label>
                                                         <div className={`flex-1 flex justify-between items-center transition-all duration-200 ${inst.isPaid ? 'opacity-50 line-through' : 'opacity-70'}`}>
-                                                            <span>{idx + 1}. Taksit:</span>
                                                             <span className="font-medium">
-                                                                {formatCurrency(inst.amount)} - {new Date(inst.date.seconds * 1000).toLocaleDateString("tr-TR")}
+                                                                {maskCurrency(inst.amount)} - {maskDate(new Date(inst.date.seconds * 1000))}
                                                             </span>
                                                         </div>
                                                     </div>
@@ -491,19 +512,20 @@ export default function DebtsPage() {
                 ) : (
                     <div className="text-center py-12 text-text-secondary glass rounded-2xl">
                         <FaCreditCard className="mx-auto text-4xl mb-4 opacity-50" />
-                        <p>Bu ay için ödenecek borç bulunmuyor.</p>
+                        <p>{t("debtsPage.noDebts")}</p>
                     </div>
-                )}
-            </div>
+                )
+                }
+            </div >
 
             <ConfirmationModal
                 isOpen={!!deleteId}
                 onClose={() => setDeleteId(null)}
                 onConfirm={handleDelete}
-                title="Borcu Sil"
-                message="Bu borcu portföyünüzden silmek istediğinize emin misiniz?"
+                title={t("debtsPage.deleteDebt")}
+                message={t("debtsPage.deleteConfirm")}
                 variant="danger"
             />
-        </div>
+        </div >
     );
 }

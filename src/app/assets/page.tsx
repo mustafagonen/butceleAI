@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "@/context/ThemeContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { collection, query, where, onSnapshot, deleteDoc, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { FaPlus, FaWallet, FaCoins, FaChartLine, FaBitcoin, FaPiggyBank, FaTrash, FaEdit, FaBuilding, FaQuestionCircle, FaArrowLeft, FaCar } from "react-icons/fa";
@@ -24,6 +26,8 @@ interface Asset {
 
 export default function AssetsPage() {
     const { user, loading: authLoading } = useAuth();
+    const { privacyMode } = useTheme();
+    const { t } = useLanguage();
     const [rawAssets, setRawAssets] = useState<Asset[]>([]);
     const [assets, setAssets] = useState<Asset[]>([]);
     const [loading, setLoading] = useState(true);
@@ -121,16 +125,7 @@ export default function AssetsPage() {
     };
 
     const getTypeLabel = (type: string) => {
-        switch (type) {
-            case "tl": return "Nakit (TL)";
-            case "gold": return "Altın";
-            case "stock": return "Hisse Senedi";
-            case "crypto": return "Kripto Para";
-            case "bes": return "BES / Fon";
-            case "real_estate": return "Gayrimenkul";
-            case "vehicle": return "Araç";
-            default: return "Diğer";
-        }
+        return t(`assetsPage.types.${type}`) || t("assetsPage.types.other");
     };
 
     const getCardStyle = (type: string) => {
@@ -146,6 +141,10 @@ export default function AssetsPage() {
         }
     };
 
+    // Helper to mask values
+    const maskCurrency = (val: number) => privacyMode ? "***" : formatCurrency(val);
+    const maskNumber = (val: number | string) => privacyMode ? "***" : val;
+
     if (loading) return <Loader />;
 
     return (
@@ -155,14 +154,14 @@ export default function AssetsPage() {
                     <Link href="/portfolio" className="p-2 hover:bg-white/10 rounded-lg transition-colors">
                         <FaArrowLeft />
                     </Link>
-                    <h1 className="text-3xl font-bold">Varlıklarım</h1>
+                    <h1 className="text-3xl font-bold">{t("assetsPage.title")}</h1>
                 </div>
                 <Link
                     href="/portfolio/new"
                     className="flex items-center gap-2 bg-accent-primary hover:bg-accent-primary/90 text-white px-4 py-2 rounded-xl transition-colors"
                 >
                     <FaPlus />
-                    <span className="hidden sm:inline">Varlık Ekle</span>
+                    <span className="hidden sm:inline">{t("assetsPage.addAsset")}</span>
                 </Link>
             </div>
 
@@ -171,15 +170,15 @@ export default function AssetsPage() {
                 <div className="absolute right-0 top-0 p-8 opacity-5">
                     <FaWallet size={100} />
                 </div>
-                <p className="text-text-secondary font-medium mb-2">Toplam Varlık Değeri</p>
+                <p className="text-text-secondary font-medium mb-2">{t("assetsPage.totalWealth")}</p>
                 <div className="flex items-end gap-4">
-                    <h2 className="text-3xl font-bold">{formatCurrency(totalWealth)}</h2>
+                    <h2 className="text-3xl font-bold">{maskCurrency(totalWealth)}</h2>
                     <button
                         onClick={() => updatePrices(rawAssets)}
                         disabled={refreshing}
                         className="text-xs text-accent-primary hover:underline mb-2 disabled:opacity-50"
                     >
-                        {refreshing ? "..." : "Güncelle"}
+                        {refreshing ? "..." : t("assetsPage.update")}
                     </button>
                 </div>
             </div>
@@ -213,7 +212,7 @@ export default function AssetsPage() {
                                             <span>
                                                 {asset.type === "real_estate" || asset.type === "tl" || asset.type === "vehicle"
                                                     ? ""
-                                                    : `${asset.amount} ${asset.type === "gold" ? "gr" : "adet"}`
+                                                    : `${maskNumber(asset.amount)} ${asset.type === "gold" ? "gr" : "adet"}`
                                                 }
                                             </span>
                                         </div>
@@ -221,20 +220,20 @@ export default function AssetsPage() {
                                 </div>
 
                                 <div className="text-right flex flex-col items-end">
-                                    <p className="font-bold text-lg text-text-primary">{formatCurrency(asset.currentValue || 0)}</p>
+                                    <p className="font-bold text-lg text-text-primary">{maskCurrency(asset.currentValue || 0)}</p>
 
                                     <div className="flex gap-2 mt-1 opacity-0 group-hover:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0">
                                         <Link
                                             href={`/portfolio/${asset.id}`}
                                             className="p-1.5 bg-white/50 dark:bg-black/20 hover:bg-white dark:hover:bg-black/40 rounded-lg transition-colors text-blue-500"
-                                            title="Düzenle"
+                                            title={t("common.edit")}
                                         >
                                             <FaEdit size={14} />
                                         </Link>
                                         <button
                                             onClick={() => setDeleteId(asset.id)}
                                             className="p-1.5 bg-white/50 dark:bg-black/20 hover:bg-white dark:hover:bg-black/40 rounded-lg transition-colors text-red-500"
-                                            title="Sil"
+                                            title={t("common.delete")}
                                         >
                                             <FaTrash size={14} />
                                         </button>
@@ -246,9 +245,9 @@ export default function AssetsPage() {
                 ) : (
                     <div className="text-center py-12 text-text-secondary glass rounded-2xl">
                         <FaWallet className="mx-auto text-4xl mb-4 opacity-50" />
-                        <p>Henüz bir varlık eklemediniz.</p>
+                        <p>{t("assetsPage.noAssets")}</p>
                         <Link href="/portfolio/new" className="text-accent-primary hover:underline mt-2 inline-block">
-                            İlk varlığını ekle
+                            {t("assetsPage.addFirstAsset")}
                         </Link>
                     </div>
                 )}
@@ -258,8 +257,8 @@ export default function AssetsPage() {
                 isOpen={!!deleteId}
                 onClose={() => setDeleteId(null)}
                 onConfirm={handleDelete}
-                title="Varlığı Sil"
-                message="Bu varlığı portföyünüzden silmek istediğinize emin misiniz?"
+                title={t("assetsPage.deleteAsset")}
+                message={t("assetsPage.deleteConfirm")}
                 variant="danger"
             />
         </div>

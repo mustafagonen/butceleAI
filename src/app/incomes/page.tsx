@@ -12,6 +12,7 @@ import { INCOME_CATEGORIES, PAYMENT_TYPES } from "@/lib/constants";
 import CustomSelect from "@/components/CustomSelect";
 import clsx from "clsx";
 import { formatCurrency } from "@/lib/utils";
+import { getCategoryLabel, getPaymentMethodLabel } from "@/lib/translationUtils";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import Loader from "@/components/Loader";
 
@@ -139,6 +140,24 @@ export default function IncomesPage() {
         }
     }, [user, authLoading, selectedDate]);
 
+    // Scroll to selected month
+    useEffect(() => {
+        const container = document.getElementById("month-scroll-container");
+        const selected = document.getElementById("selected-month");
+
+        if (container && selected) {
+            const containerWidth = container.offsetWidth;
+            const selectedLeft = selected.offsetLeft;
+            const selectedWidth = selected.offsetWidth;
+
+            // Center the selected item
+            container.scrollTo({
+                left: selectedLeft - (containerWidth / 2) + (selectedWidth / 2),
+                behavior: "smooth"
+            });
+        }
+    }, [selectedDate]);
+
     // Filter Logic
     const filteredIncomes = incomes.filter((income) => {
         const matchesSearch =
@@ -230,7 +249,7 @@ export default function IncomesPage() {
             </div>
 
             {/* Month & Year Selector */}
-            <div className="glass p-2 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4 overflow-x-auto">
+            <div className="glass p-2 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-4 shrink-0">
                     {/* Year Selector */}
                     <div className="flex items-center gap-2 bg-white/5 rounded-lg p-1">
@@ -251,7 +270,10 @@ export default function IncomesPage() {
                 </div>
 
                 {/* Month List */}
-                <div className="flex flex-1 overflow-x-auto pb-2 md:pb-0 gap-2 no-scrollbar mask-linear-fade">
+                <div
+                    id="month-scroll-container"
+                    className="flex flex-1 w-full overflow-x-auto pb-2 md:pb-0 gap-2 no-scrollbar mask-linear-fade scroll-smooth"
+                >
                     {months.map((month, index) => {
                         const isSelected = selectedDate.getMonth() === index;
                         const isCurrentMonth = new Date().getMonth() === index && new Date().getFullYear() === selectedDate.getFullYear();
@@ -259,6 +281,7 @@ export default function IncomesPage() {
                         return (
                             <button
                                 key={month}
+                                id={isSelected ? "selected-month" : ""}
                                 onClick={() => handleMonthSelect(index)}
                                 className={clsx(
                                     "px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 whitespace-nowrap shrink-0",
@@ -348,8 +371,8 @@ export default function IncomesPage() {
                                             ₺
                                         </div>
                                         <div className="min-w-0">
-                                            <h3 className="font-bold truncate text-lg">{income.category}</h3>
-                                            <p className="text-sm text-text-secondary">{income.paymentMethod || income.description}</p>
+                                            <h3 className="font-bold truncate text-lg">{getCategoryLabel(income.category, t)}</h3>
+                                            <p className="text-sm text-text-secondary">{getPaymentMethodLabel(income.paymentMethod || "", t) || income.description || t("common.noDescription")}</p>
                                         </div>
                                     </div>
                                     <div className="text-right shrink-0">

@@ -66,6 +66,8 @@ export default function PortfolioPage() {
     const getDisplayValue = (value: number) => {
         return privacyMode ? "***" : formatCurrency(value);
     };
+    const maskNumber = (val: number | string) => privacyMode ? "***" : val;
+    const maskDate = (date: Date) => privacyMode ? "**/**/****" : date.toLocaleDateString("tr-TR");
 
     useEffect(() => {
         if (authLoading) return;
@@ -351,7 +353,7 @@ export default function PortfolioPage() {
                                                 <p className="text-xs text-text-secondary">
                                                     {asset.type === "real_estate" || asset.type === "tl" || asset.type === "vehicle"
                                                         ? t("portfolio.totalValue")
-                                                        : `${asset.amount} ${asset.type === "gold" ? "gr" : "adet"}`
+                                                        : `${maskNumber(asset.amount)} ${asset.type === "gold" ? "gr" : "adet"}`
                                                     }
                                                 </p>
                                             </div>
@@ -430,11 +432,11 @@ export default function PortfolioPage() {
                                                     <div className="mt-1 text-xs opacity-70">
                                                         {debt.isInstallment && debt.installments && debt.installments.length > 0 ? (
                                                             <span>
-                                                                {t("portfolio.lastInstallment")}: {new Date(debt.installments[debt.installments.length - 1].date.seconds * 1000).toLocaleDateString("tr-TR")}
+                                                                {t("portfolio.lastInstallment")}: {maskDate(new Date(debt.installments[debt.installments.length - 1].date.seconds * 1000))}
                                                             </span>
                                                         ) : debt.dueDate ? (
                                                             <span>
-                                                                {t("portfolio.lastPayment")}: {new Date(debt.dueDate.seconds * 1000).toLocaleDateString("tr-TR")}
+                                                                {t("portfolio.lastPayment")}: {maskDate(new Date(debt.dueDate.seconds * 1000))}
                                                             </span>
                                                         ) : null}
                                                     </div>

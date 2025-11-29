@@ -11,6 +11,7 @@ import clsx from "clsx";
 import Loader from "@/components/Loader";
 import { formatCurrency } from "@/lib/utils";
 import AnalysisCharts from "@/components/summary/AnalysisCharts";
+import { getCategoryLabel } from "@/lib/translationUtils";
 
 interface Transaction {
     id: string;
@@ -91,6 +92,24 @@ export default function SummaryPage() {
         setSelectedDate(newDate);
     };
 
+    // Scroll to selected month
+    useEffect(() => {
+        const container = document.getElementById("month-scroll-container");
+        const selected = document.getElementById("selected-month");
+
+        if (container && selected) {
+            const containerWidth = container.offsetWidth;
+            const selectedLeft = selected.offsetLeft;
+            const selectedWidth = selected.offsetWidth;
+
+            // Center the selected item
+            container.scrollTo({
+                left: selectedLeft - (containerWidth / 2) + (selectedWidth / 2),
+                behavior: "smooth"
+            });
+        }
+    }, [selectedDate]);
+
     // --- Data Processing ---
 
     const getStatsForMonth = (date: Date): MonthlyStats => {
@@ -149,6 +168,7 @@ export default function SummaryPage() {
     const generateInsights = (): Insight[] => {
         const insights: Insight[] = [];
         const fmt = (val: number) => privacyMode ? "****" : formatCurrency(val);
+        const fmtPercent = (val: number) => privacyMode ? "***" : val.toFixed(1);
 
         // 1. Balance Check
         if (currentStats.balance > 0) {
@@ -178,7 +198,7 @@ export default function SummaryPage() {
                     icon: <FaArrowUp className="text-red-400" />,
                     title: t("summaryPage.insights.expensesIncreased"),
                     message: t("summaryPage.insights.expensesIncreasedMessage")
-                        .replace("{percent}", Math.abs(percent).toFixed(1))
+                        .replace("{percent}", fmtPercent(Math.abs(percent)))
                         .replace("{amount}", fmt(diff))
                 });
             } else if (diff < 0) {
@@ -187,7 +207,7 @@ export default function SummaryPage() {
                     icon: <FaArrowDown className="text-green-400" />,
                     title: t("summaryPage.insights.saved"),
                     message: t("summaryPage.insights.savedMessage")
-                        .replace("{percent}", Math.abs(percent).toFixed(1))
+                        .replace("{percent}", fmtPercent(Math.abs(percent)))
                         .replace("{amount}", fmt(Math.abs(diff)))
                 });
             }
@@ -204,8 +224,8 @@ export default function SummaryPage() {
                     icon: <FaChartPie className="text-orange-400" />,
                     title: t("summaryPage.insights.highCategorySpending"),
                     message: t("summaryPage.insights.highCategorySpendingMessage")
-                        .replace("{percent}", percentOfTotal.toFixed(0))
-                        .replace("{category}", topCategory)
+                        .replace("{percent}", privacyMode ? "***" : percentOfTotal.toFixed(0))
+                        .replace("{category}", getCategoryLabel(topCategory, t))
                 });
             }
         }
@@ -232,7 +252,7 @@ export default function SummaryPage() {
             <h1 className="text-3xl font-bold">{t("summaryPage.title")}</h1>
 
             {/* Month & Year Selector */}
-            <div className="glass p-2 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4 overflow-x-auto">
+            <div className="glass p-2 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-4 shrink-0">
                     <div className="flex items-center gap-2 bg-white/5 rounded-lg p-1">
                         <button onClick={() => handleYearChange(-1)} className="p-2 hover:bg-white/10 rounded-lg transition-colors">&lt;</button>
@@ -240,13 +260,17 @@ export default function SummaryPage() {
                         <button onClick={() => handleYearChange(1)} className="p-2 hover:bg-white/10 rounded-lg transition-colors">&gt;</button>
                     </div>
                 </div>
-                <div className="flex flex-1 overflow-x-auto pb-2 md:pb-0 gap-2 no-scrollbar mask-linear-fade">
+                <div
+                    id="month-scroll-container"
+                    className="flex flex-1 w-full overflow-x-auto pb-2 md:pb-0 gap-2 no-scrollbar mask-linear-fade scroll-smooth"
+                >
                     {months.map((month, index) => {
                         const isSelected = selectedDate.getMonth() === index;
                         const isCurrentMonth = new Date().getMonth() === index && new Date().getFullYear() === selectedDate.getFullYear();
                         return (
                             <button
                                 key={month}
+                                id={isSelected ? "selected-month" : ""}
                                 onClick={() => handleMonthSelect(index)}
                                 className={clsx(
                                     "px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 whitespace-nowrap shrink-0",
@@ -313,7 +337,7 @@ export default function SummaryPage() {
                                 {topExpenses.map(([category, amount], index) => (
                                     <div key={category}>
                                         <div className="flex justify-between text-sm mb-1">
-                                            <span className="font-medium">{category}</span>
+                                            <span className="font-medium">{getCategoryLabel(category, t)}</span>
                                             <span className="text-text-secondary">
                                                 {privacyMode ? "****" : formatCurrency(amount)}
                                             </span>

@@ -3,17 +3,19 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { FaWallet, FaChartPie, FaHome, FaList, FaChartLine } from "react-icons/fa";
+import { useLanguage } from "@/context/LanguageContext";
 import clsx from "clsx";
 
 export default function BottomNav() {
     const pathname = usePathname();
+    const { t } = useLanguage();
 
     const navItems = [
-        { href: "/dashboard", label: "Panel", icon: FaHome },
-        { href: "/incomes", label: "Gelir", icon: FaWallet },
-        { href: "/expenses", label: "Gider", icon: FaList },
-        { href: "/portfolio", label: "Portföy", icon: FaChartLine },
-        { href: "/summary", label: "Özet", icon: FaChartPie },
+        { href: "/dashboard", label: t("bottomNav.panel"), icon: FaHome },
+        { href: "/incomes", label: t("bottomNav.income"), icon: FaWallet },
+        { href: "/expenses", label: t("bottomNav.expense"), icon: FaList },
+        { href: "/portfolio", label: t("bottomNav.portfolio"), icon: FaChartLine },
+        { href: "/summary", label: t("bottomNav.summary"), icon: FaChartPie },
     ];
 
     return (

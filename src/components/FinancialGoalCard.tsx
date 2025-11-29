@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "@/context/ThemeContext";
 import { doc, getDoc, updateDoc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { FaTrophy, FaEdit, FaCheck, FaTimes } from "react-icons/fa";
@@ -16,6 +17,7 @@ interface FinancialGoalCardProps {
 
 export default function FinancialGoalCard({ totalWealth }: FinancialGoalCardProps) {
     const { user } = useAuth();
+    const { privacyMode } = useTheme();
     const { t } = useLanguage();
     const [goal, setGoal] = useState<number | null>(null);
     const [isEditing, setIsEditing] = useState(false);
@@ -62,7 +64,7 @@ export default function FinancialGoalCard({ totalWealth }: FinancialGoalCardProp
         return Math.min(progress, 100);
     };
 
-
+    const maskCurrency = (val: number) => privacyMode ? "***" : formatCurrency(val);
 
     if (loading) return null; // Or a skeleton
 
@@ -125,8 +127,8 @@ export default function FinancialGoalCard({ totalWealth }: FinancialGoalCardProp
                 ) : (
                     <div>
                         <div className="flex justify-between items-end mb-2">
-                            <span className="text-3xl font-bold text-text-primary">{formatCurrency(totalWealth)}</span>
-                            <span className="text-sm text-text-secondary mb-1">/ {formatCurrency(goal || 0)}</span>
+                            <span className="text-3xl font-bold text-text-primary">{maskCurrency(totalWealth)}</span>
+                            <span className="text-sm text-text-secondary mb-1">/ {maskCurrency(goal || 0)}</span>
                         </div>
 
                         {/* Progress Bar */}

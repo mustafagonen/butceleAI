@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
+import { useTheme } from "@/context/ThemeContext";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { FaArrowUp, FaArrowDown, FaWallet, FaPiggyBank, FaPercent, FaCalendarAlt, FaList, FaPlus, FaMinus } from "react-icons/fa";
@@ -11,6 +12,7 @@ import Link from "next/link";
 import Loader from "@/components/Loader";
 import Button from "@/components/Button";
 import { formatCurrency } from "@/lib/utils";
+import { getCategoryLabel } from "@/lib/translationUtils";
 
 interface Transaction {
     id: string;
@@ -23,7 +25,8 @@ interface Transaction {
 
 export default function DashboardPage() {
     const { user } = useAuth();
-    const { t } = useLanguage();
+    const { t, language } = useLanguage();
+    const { privacyMode } = useTheme();
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -99,6 +102,11 @@ export default function DashboardPage() {
     // Recent Transactions (Top 5)
     const recentTransactions = transactions.slice(0, 5);
 
+    // Helper to mask values
+    const maskCurrency = (val: number) => privacyMode ? "***" : formatCurrency(val);
+    const maskNumber = (val: number | string) => privacyMode ? "***" : val;
+    const maskDate = (date: Date) => privacyMode ? "**/**/****" : date.toLocaleDateString(language === 'en' ? 'en-US' : 'tr-TR', { day: 'numeric', month: 'long' });
+
     return (
         <div className="space-y-8">
             {/* Header with Gradient Text & Quick Actions */}
@@ -142,7 +150,7 @@ export default function DashboardPage() {
                             </span>
                         </div>
                         <div className="mt-4">
-                            <h3 className="text-3xl font-bold text-text-primary">{formatCurrency(monthlyIncome)}</h3>
+                            <h3 className="text-3xl font-bold text-text-primary">{maskCurrency(monthlyIncome)}</h3>
                             <p className="text-sm text-text-secondary mt-1">{t("dashboard.monthlyIncome")}</p>
                         </div>
                     </div>
@@ -161,7 +169,7 @@ export default function DashboardPage() {
                             </span>
                         </div>
                         <div className="mt-4">
-                            <h3 className="text-3xl font-bold text-text-primary">{formatCurrency(monthlyExpense)}</h3>
+                            <h3 className="text-3xl font-bold text-text-primary">{maskCurrency(monthlyExpense)}</h3>
                             <p className="text-sm text-text-secondary mt-1">{t("dashboard.monthlyExpense")}</p>
                         </div>
                     </div>
@@ -181,7 +189,7 @@ export default function DashboardPage() {
                         </div>
                         <div className="mt-4">
                             <h3 className={clsx("text-3xl font-bold", monthlySavings >= 0 ? "text-accent-primary" : "text-red-500")}>
-                                {formatCurrency(monthlySavings)}
+                                {maskCurrency(monthlySavings)}
                             </h3>
                             <p className="text-sm text-text-secondary mt-1">{t("dashboard.monthlySavings")}</p>
                         </div>
@@ -205,7 +213,7 @@ export default function DashboardPage() {
                         </div>
                         <div className="mt-4">
                             <h3 className={clsx("text-3xl font-bold", savingsRate >= 20 ? "text-green-500" : savingsRate > 0 ? "text-yellow-500" : "text-red-500")}>
-                                %{savingsRate.toFixed(1)}
+                                %{maskNumber(savingsRate.toFixed(1))}
                             </h3>
                             <p className="text-sm text-text-secondary mt-1">{t("dashboard.savingsRate")}</p>
                         </div>
@@ -227,27 +235,27 @@ export default function DashboardPage() {
                     <div className="bg-white dark:bg-white/5 backdrop-blur-xl rounded-3xl border border-gray-200 dark:border-white/10 overflow-hidden">
                         {recentTransactions.length > 0 ? (
                             <div className="divide-y divide-gray-100 dark:divide-white/5">
-                                {recentTransactions.map((t) => (
-                                    <div key={t.id} className="p-5 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group cursor-default">
+                                {recentTransactions.map((transaction) => (
+                                    <div key={transaction.id} className="p-5 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group cursor-default">
                                         <div className="flex items-center gap-4">
                                             <div className={clsx(
                                                 "w-12 h-12 rounded-2xl flex items-center justify-center text-xl shadow-sm transition-transform group-hover:scale-110",
-                                                t.type === "income"
+                                                transaction.type === "income"
                                                     ? "bg-gradient-to-br from-green-400 to-emerald-600 text-white"
                                                     : "bg-gradient-to-br from-red-400 to-rose-600 text-white"
                                             )}>
-                                                {t.type === "income" ? <FaArrowUp /> : <FaArrowDown />}
+                                                {transaction.type === "income" ? <FaArrowUp /> : <FaArrowDown />}
                                             </div>
                                             <div>
-                                                <p className="font-bold text-text-primary text-lg">{t.category}</p>
-                                                <p className="text-sm text-text-secondary">{new Date(t.date.seconds * 1000).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' })} • {t.description || "Açıklama yok"}</p>
+                                                <p className="font-bold text-text-primary text-lg">{getCategoryLabel(transaction.category, t)}</p>
+                                                <p className="text-sm text-text-secondary">{maskDate(new Date(transaction.date.seconds * 1000))} • {transaction.description || t("common.noDescription")}</p>
                                             </div>
                                         </div>
                                         <span className={clsx(
                                             "font-bold text-xl",
-                                            t.type === "income" ? "text-green-500" : "text-red-500"
+                                            transaction.type === "income" ? "text-green-500" : "text-red-500"
                                         )}>
-                                            {t.type === "income" ? "+" : "-"}{formatCurrency(t.amount)}
+                                            {transaction.type === "income" ? "+" : "-"}{maskCurrency(transaction.amount)}
                                         </span>
                                     </div>
                                 ))}
@@ -284,7 +292,7 @@ export default function DashboardPage() {
                                         <div className="w-2 h-2 rounded-full bg-green-500"></div>
                                         <span className="text-gray-300 text-sm">{t("dashboard.totalIncome")}</span>
                                     </div>
-                                    <span className="font-bold text-green-400 text-lg">{formatCurrency(yearlyIncome)}</span>
+                                    <span className="font-bold text-green-400 text-lg">{maskCurrency(yearlyIncome)}</span>
                                 </div>
 
                                 <div className="flex flex-col items-start gap-2 p-4 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm">
@@ -292,14 +300,14 @@ export default function DashboardPage() {
                                         <div className="w-2 h-2 rounded-full bg-red-500"></div>
                                         <span className="text-gray-300 text-sm">{t("dashboard.totalExpense")}</span>
                                     </div>
-                                    <span className="font-bold text-red-400 text-lg">{formatCurrency(yearlyExpense)}</span>
+                                    <span className="font-bold text-red-400 text-lg">{maskCurrency(yearlyExpense)}</span>
                                 </div>
 
                                 <div className="pt-4 border-t border-white/10">
                                     <div className="flex flex-col gap-2">
                                         <span className="text-gray-400 font-medium text-sm">{t("dashboard.netSavings")}</span>
                                         <span className={clsx("text-2xl font-bold", yearlySavings >= 0 ? "text-white" : "text-red-400")}>
-                                            {formatCurrency(yearlySavings)}
+                                            {maskCurrency(yearlySavings)}
                                         </span>
                                     </div>
                                 </div>

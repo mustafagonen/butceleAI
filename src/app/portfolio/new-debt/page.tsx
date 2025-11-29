@@ -149,16 +149,18 @@ export default function AddDebtPage() {
         const newInstallments = [...formData.installments];
         newInstallments[index] = { ...newInstallments[index], amount };
 
-        // If this is the first installment and others are empty, auto-fill them
-        if (index === 0 && amount) {
-            const shouldAutoFill = newInstallments.slice(1).every(inst => !inst.amount);
-            if (shouldAutoFill) {
-                newInstallments.forEach((inst, i) => {
-                    if (i > 0) {
+        // If this is the first installment, update others if they match the previous value or are empty
+        if (index === 0) {
+            const oldFirstAmount = formData.installments[0]?.amount || "";
+            newInstallments.forEach((inst, i) => {
+                if (i > 0) {
+                    // Update if it was empty OR if it matched the previous first installment amount
+                    // This allows users to "break away" from the auto-sync by manually editing a specific installment
+                    if (!inst.amount || inst.amount === oldFirstAmount) {
                         newInstallments[i] = { ...inst, amount };
                     }
-                });
-            }
+                }
+            });
         }
 
         // Calculate total amount
@@ -215,57 +217,6 @@ export default function AddDebtPage() {
                             { value: "gold", label: "Altın (Gram)" }
                         ]}
                         placeholder="Seçiniz"
-                    />
-                </div>
-
-                {/* Name */}
-                <div className="space-y-2">
-                    <label className="text-sm font-medium text-text-secondary">Borç Adı / Açıklama</label>
-                    <input
-                        type="text"
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        className="w-full bg-gray-50 dark:bg-bg-primary border border-gray-300 dark:border-white/10 rounded-xl p-3 outline-none focus:border-accent-primary"
-                        placeholder="Örn: Garanti Kredi Kartı"
-                        required
-                    />
-                </div>
-
-                {/* Amount */}
-                <div className="space-y-2">
-                    <label className="text-sm font-medium text-text-secondary">
-                        {formData.currencyCode === "TRY" ? "Tutar (TL)" :
-                            formData.currencyCode === "GA" ? "Miktar (Gram)" :
-                                `Miktar (${formData.currencyCode})`}
-                    </label>
-                    {formData.currencyCode === "TRY" ? (
-                        <CurrencyInput
-                            value={formData.amount}
-                            onChange={(val) => setFormData({ ...formData, amount: val })}
-                            placeholder="0,00"
-                            required
-                        />
-                    ) : (
-                        <input
-                            type="number"
-                            step="0.01"
-                            value={formData.amount}
-                            onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                            className="w-full bg-gray-50 dark:bg-bg-primary border border-gray-300 dark:border-white/10 rounded-xl p-3 outline-none focus:border-accent-primary"
-                            placeholder="0.00"
-                            required
-                        />
-                    )}
-                </div>
-
-                {/* Due Date */}
-                <div className="space-y-2">
-                    <label className="text-sm font-medium text-text-secondary">Son Ödeme Tarihi (İsteğe Bağlı)</label>
-                    <input
-                        type="date"
-                        value={formData.dueDate}
-                        onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
-                        className="w-full bg-gray-50 dark:bg-bg-primary border border-gray-300 dark:border-white/10 rounded-xl p-3 outline-none focus:border-accent-primary"
                     />
                 </div>
 
@@ -356,22 +307,86 @@ export default function AddDebtPage() {
                                                 </div>
                                             ))}
                                         </div>
-                                        {formData.amount && (
-                                            <div className="pt-3 border-t border-gray-300 dark:border-white/10">
-                                                <p className="text-sm font-medium text-text-primary">
-                                                    Toplam Borç: {formData.currencyCode === "TRY"
+
+                                        {/* Total Amount - Disabled and shown here when installment mode is active */}
+                                        <div className="pt-4 border-t border-gray-300 dark:border-white/10 space-y-2">
+                                            <label className="text-sm font-medium text-text-secondary">
+                                                Toplam Borç ({formData.currencyCode})
+                                            </label>
+                                            <div className="relative">
+                                                <input
+                                                    type="text"
+                                                    value={formData.currencyCode === "TRY"
                                                         ? formatCurrency(parseFloat(formData.amount) || 0)
-                                                        : `${parseFloat(formData.amount).toFixed(2)} ${formData.currencyCode}`
+                                                        : `${parseFloat(formData.amount || "0").toFixed(2)}`
                                                     }
-                                                </p>
+                                                    disabled
+                                                    className="w-full bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-xl p-3 outline-none text-text-secondary cursor-not-allowed font-bold"
+                                                />
+                                                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-text-secondary">
+                                                    Otomatik Hesaplanır
+                                                </div>
                                             </div>
-                                        )}
+                                        </div>
                                     </div>
                                 )}
                             </div>
                         )}
                     </div>
                 )}
+
+                {/* Name */}
+                <div className="space-y-2">
+                    <label className="text-sm font-medium text-text-secondary">Borç Adı / Açıklama</label>
+                    <input
+                        type="text"
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        className="w-full bg-gray-50 dark:bg-bg-primary border border-gray-300 dark:border-white/10 rounded-xl p-3 outline-none focus:border-accent-primary"
+                        placeholder="Örn: Garanti Kredi Kartı"
+                        required
+                    />
+                </div>
+
+                {/* Amount - Show here only if NOT installment */}
+                {!formData.isInstallment && (
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-text-secondary">
+                            {formData.currencyCode === "TRY" ? "Tutar (TL)" :
+                                formData.currencyCode === "GA" ? "Miktar (Gram)" :
+                                    `Miktar (${formData.currencyCode})`}
+                        </label>
+                        {formData.currencyCode === "TRY" ? (
+                            <CurrencyInput
+                                value={formData.amount}
+                                onChange={(val) => setFormData({ ...formData, amount: val })}
+                                placeholder="0,00"
+                                required
+                            />
+                        ) : (
+                            <input
+                                type="number"
+                                step="0.01"
+                                value={formData.amount}
+                                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                                className="w-full bg-gray-50 dark:bg-bg-primary border border-gray-300 dark:border-white/10 rounded-xl p-3 outline-none focus:border-accent-primary"
+                                placeholder="0.00"
+                                required
+                            />
+                        )}
+                    </div>
+                )}
+
+                {/* Due Date */}
+                <div className="space-y-2">
+                    <label className="text-sm font-medium text-text-secondary">Son Ödeme Tarihi (İsteğe Bağlı)</label>
+                    <input
+                        type="date"
+                        value={formData.dueDate}
+                        onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+                        className="w-full bg-gray-50 dark:bg-bg-primary border border-gray-300 dark:border-white/10 rounded-xl p-3 outline-none focus:border-accent-primary"
+                    />
+                </div>
 
                 <Button
                     type="submit"
