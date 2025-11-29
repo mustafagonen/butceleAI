@@ -4,7 +4,7 @@
 
 **Take Your Expenses to the Future**
 
-[🚀 Live Demo](https://butcele.netlify.app/) | [📖 Documentation](#features) | [🐛 Report Bug](https://github.com/mustafagonen/butceleAI/issues)
+[🚀 Live Demo](http://butcele.com.tr/) | [📖 Documentation](#features) | [🐛 Report Bug](https://github.com/mustafagonen/butceleAI/issues)
 
 [![Next.js](https://img.shields.io/badge/Next.js-16.0-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19.2-61DAFB?style=for-the-badge&logo=react)](https://react.dev/)
@@ -43,6 +43,7 @@
 - 📊 **Detailed Analytics** - Analyze your expenses by categories
 - 💳 **Statement Upload** - Automatically process PDF bank statements
 - 💼 **Portfolio Management** - Track your assets (gold, forex, stocks, crypto)
+- 🔍 **SEO Optimized** - High visibility on search engines
 
 ---
 
@@ -66,8 +67,9 @@
 - ✅ Track Gold, Forex, BES, Stocks, Crypto
 - ✅ Real-time market prices
 - ✅ Automatic value calculation
-- ✅ Debt management
+- ✅ Debt management with installment tracking
 - ✅ Financial freedom goal
+- ✅ Privacy mode for sensitive data
 
 ### 📊 Dashboard & Reporting
 - ✅ Monthly summary view
@@ -80,13 +82,16 @@
 - ✅ Smooth animations
 - ✅ Glassmorphism design
 - ✅ Responsive layout
-- ✅ Turkish language support
+- ✅ Interactive Experience Map
+- ✅ MgBot AI Assistant
+- ✅ Dynamic Weather & Time Widget
+- ✅ Multi-language support (TR/EN)
 
 ---
 
 ## 🚀 Live Demo
 
-Try the app now: **[https://butcele.netlify.app/](https://butcele.netlify.app/)**
+Try the app now: **[http://butcele.com.tr/](http://butcele.com.tr/)**
 
 > **Note:** You can sign in with your Google account for the demo.
 
