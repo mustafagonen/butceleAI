@@ -9,6 +9,7 @@ import Button from "@/components/Button";
 import { FaArrowLeft, FaSave } from "react-icons/fa";
 import Link from "next/link";
 import CurrencyInput from "@/components/CurrencyInput";
+import toast from "react-hot-toast";
 
 const INCOME_CATEGORIES = [
     "Maaş",
@@ -50,7 +51,7 @@ export default function AddIncomePage() {
             router.push("/incomes");
         } catch (error) {
             console.error("Error adding income:", error);
-            alert("Hata oluştu, lütfen tekrar deneyin.");
+            toast.error("Hata oluştu, lütfen tekrar deneyin.");
         } finally {
             setLoading(false);
         }

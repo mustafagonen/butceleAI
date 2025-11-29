@@ -14,6 +14,7 @@ import CustomSelect from "@/components/CustomSelect";
 import clsx from "clsx";
 import { formatCurrency } from "@/lib/utils";
 import { getCategoryLabel, getPaymentMethodLabel } from "@/lib/translationUtils";
+import toast from "react-hot-toast";
 
 interface Transaction {
     id: string;
@@ -85,7 +86,7 @@ export default function ExpensesPage() {
             await Promise.all(deletePromises);
         } catch (error) {
             console.error("Error resetting month:", error);
-            alert(t("expensesPage.resetError"));
+            toast.error(t("expensesPage.resetError"));
             setLoading(false);
         }
     };
@@ -193,17 +194,34 @@ export default function ExpensesPage() {
     const handleUpdate = async () => {
         if (!editingId || !user) return;
 
+        // Validation
+        if (!editForm.amount || editForm.amount <= 0) {
+            toast.error(t("expensesPage.amountRequired") || "Tutar gerekli");
+            return;
+        }
+        if (!editForm.category) {
+            toast.error(t("expensesPage.categoryRequired") || "Kategori gerekli");
+            return;
+        }
+        if (!editForm.paymentMethod) {
+            toast.error(t("expensesPage.paymentMethodRequired") || "Ödeme yöntemi gerekli");
+            return;
+        }
+
         try {
             const expenseRef = doc(db, "transactions", editingId);
             await updateDoc(expenseRef, {
-                ...editForm,
-                amount: Number(editForm.amount) // Ensure amount is a number
+                category: editForm.category,
+                amount: Number(editForm.amount),
+                description: editForm.description || "",
+                paymentMethod: editForm.paymentMethod
             });
+            toast.success(t("expensesPage.updateSuccess") || "Harcama güncellendi");
             setEditingId(null);
             setEditForm({});
         } catch (error) {
             console.error("Error updating document: ", error);
-            alert(t("expensesPage.updateError"));
+            toast.error(t("expensesPage.updateError") || "Güncelleme sırasında bir hata oluştu");
         }
     };
 
@@ -222,7 +240,7 @@ export default function ExpensesPage() {
             }
         } catch (error) {
             console.error("Error deleting document: ", error);
-            alert(t("expensesPage.deleteError"));
+            toast.error(t("expensesPage.deleteError") || "Silme sırasında bir hata oluştu");
         }
     };
 
@@ -415,30 +433,36 @@ export default function ExpensesPage() {
                                                         <input
                                                             type="number"
                                                             value={editForm.amount}
+                                                            onClick={(e) => e.stopPropagation()}
                                                             onChange={(e) => setEditForm({ ...editForm, amount: parseFloat(e.target.value) })}
                                                             className="w-full bg-white/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm"
                                                             placeholder={t("expensesPage.amount")}
                                                         />
-                                                        <CustomSelect
-                                                            value={editForm.category || ""}
-                                                            onChange={(val) => setEditForm({ ...editForm, category: val })}
-                                                            options={CATEGORIES.map(c => ({ value: c, label: c }))}
-                                                            placeholder={t("expensesPage.category")}
-                                                        />
+                                                        <div onClick={(e) => e.stopPropagation()}>
+                                                            <CustomSelect
+                                                                value={editForm.category || ""}
+                                                                onChange={(val) => setEditForm({ ...editForm, category: val })}
+                                                                options={CATEGORIES.map(c => ({ value: c, label: c }))}
+                                                                placeholder={t("expensesPage.category")}
+                                                            />
+                                                        </div>
                                                     </div>
                                                     <input
                                                         type="text"
                                                         value={editForm.description || ""}
+                                                        onClick={(e) => e.stopPropagation()}
                                                         onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
                                                         className="w-full bg-white/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm"
                                                         placeholder={t("expensesPage.description")}
                                                     />
-                                                    <CustomSelect
-                                                        value={editForm.paymentMethod || ""}
-                                                        onChange={(val) => setEditForm({ ...editForm, paymentMethod: val })}
-                                                        options={PAYMENT_TYPES.map(t => ({ value: t, label: t }))}
-                                                        placeholder={t("expensesPage.paymentMethod")}
-                                                    />
+                                                    <div onClick={(e) => e.stopPropagation()}>
+                                                        <CustomSelect
+                                                            value={editForm.paymentMethod || ""}
+                                                            onChange={(val) => setEditForm({ ...editForm, paymentMethod: val })}
+                                                            options={PAYMENT_TYPES.map(t => ({ value: t, label: t }))}
+                                                            placeholder={t("expensesPage.paymentMethod")}
+                                                        />
+                                                    </div>
                                                     <div className="flex justify-end gap-2 pt-2">
                                                         <Button variant="ghost" size="sm" onClick={handleCancelEdit}>
                                                             {t("common.cancel")}

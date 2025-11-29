@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/context/ThemeContext";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { AuthProvider } from "@/context/AuthContext";
 import MainLayout from "@/components/MainLayout";
+import { Toaster } from "react-hot-toast";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import { Suspense } from "react";
 import { defaultMetadata, organizationSchema, webApplicationSchema, faqSchema } from "@/lib/metadata";
@@ -36,6 +37,29 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className} suppressHydrationWarning={true}>
+        <Toaster
+          position="bottom-left"
+          toastOptions={{
+            duration: 4000,
+            style: {
+              background: 'var(--bg-secondary)',
+              color: 'var(--text-primary)',
+              border: '1px solid var(--border-color)',
+            },
+            success: {
+              iconTheme: {
+                primary: '#10b981',
+                secondary: '#fff',
+              },
+            },
+            error: {
+              iconTheme: {
+                primary: '#ef4444',
+                secondary: '#fff',
+              },
+            },
+          }}
+        />
         <Suspense fallback={null}>
           <GoogleAnalytics />
         </Suspense>

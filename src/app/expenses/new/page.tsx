@@ -10,6 +10,7 @@ import { FaArrowLeft, FaSave } from "react-icons/fa";
 import Link from "next/link";
 import { CATEGORIES, PAYMENT_TYPES } from "@/lib/constants";
 import CurrencyInput from "@/components/CurrencyInput";
+import toast from "react-hot-toast";
 
 export default function AddExpensePage() {
     const { user } = useAuth();
@@ -43,7 +44,7 @@ export default function AddExpensePage() {
             router.push("/expenses");
         } catch (error) {
             console.error("Error adding expense:", error);
-            alert("Hata oluştu, lütfen tekrar deneyin.");
+            toast.error("Hata oluştu, lütfen tekrar deneyin.");
         } finally {
             setLoading(false);
         }
