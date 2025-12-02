@@ -124,6 +124,26 @@ export const tr = {
         goalTitle: "Finansal Özgürlük Hedefi",
         goalPlaceholder: "Hedef Tutar (TL)"
     },
+    assetsPage: {
+        title: "Varlıklarım",
+        addAsset: "Varlık Ekle",
+        totalWealth: "Toplam Varlık",
+        update: "Güncelle",
+        noAssets: "Henüz varlık eklenmemiş.",
+        addFirstAsset: "İlk Varlığını Ekle",
+        deleteAsset: "Varlık Sil",
+        deleteConfirm: "Bu varlığı portföyünüzden silmek istediğinize emin misiniz?",
+        types: {
+            tl: "Türk Lirası",
+            gold: "Altın",
+            stock: "Hisse Senedi",
+            crypto: "Kripto Para",
+            bes: "BES",
+            real_estate: "Gayrimenkul",
+            vehicle: "Araç",
+            other: "Diğer"
+        }
+    },
     debtsPage: {
         title: "Borçlarım",
         addDebt: "Borç Ekle",

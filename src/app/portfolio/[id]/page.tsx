@@ -21,7 +21,8 @@ const ASSET_TYPES = [
     { value: "fund", label: "Yatırım Fonu" },
     { value: "crypto", label: "Kripto Para" },
     { value: "bes", label: "BES" },
-    { value: "real_estate", label: "Gayrimenkul" }
+    { value: "real_estate", label: "Gayrimenkul" },
+    { value: "vehicle", label: "Araç" }
 ];
 
 const REAL_ESTATE_TYPES = [
@@ -135,6 +136,10 @@ export default function EditAssetPage({ params }: { params: Promise<{ id: string
             } else if (formData.type === "real_estate") {
                 assetData.name = formData.name;
                 assetData.code = "RE";
+                assetData.amount = parseFloat(formData.amount);
+            } else if (formData.type === "vehicle") {
+                assetData.name = formData.name;
+                assetData.code = "VEHICLE";
                 assetData.amount = parseFloat(formData.amount);
             } else {
                 assetData.name = formData.name;
@@ -335,6 +340,31 @@ export default function EditAssetPage({ params }: { params: Promise<{ id: string
                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                 className="w-full bg-gray-50 dark:bg-bg-primary border border-gray-300 dark:border-white/10 rounded-xl p-3 outline-none focus:border-accent-primary"
                                 placeholder="Örn: Kadıköy Daire"
+                                required
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-text-secondary">Tahmini Değer (TL)</label>
+                            <CurrencyInput
+                                value={formData.amount}
+                                onChange={(val) => setFormData({ ...formData, amount: val })}
+                                placeholder="0,00"
+                                required
+                            />
+                        </div>
+                    </>
+                )}
+
+                {formData.type === "vehicle" && (
+                    <>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-text-secondary">Tanım / İsim</label>
+                            <input
+                                type="text"
+                                value={formData.name}
+                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                className="w-full bg-gray-50 dark:bg-bg-primary border border-gray-300 dark:border-white/10 rounded-xl p-3 outline-none focus:border-accent-primary"
+                                placeholder="Örn: 34 ABC 123"
                                 required
                             />
                         </div>

@@ -456,19 +456,6 @@ export default function PortfolioPage() {
                                                     {getDisplayValue(debt.remainingAmount !== undefined ? debt.remainingAmount : debt.amount)}
                                                 </p>
                                                 <p className="text-xs text-text-secondary">{t("portfolio.currentDebt")}</p>
-
-                                                <div className="flex gap-2 mt-1 opacity-0 group-hover:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0">
-                                                    <button
-                                                        onClick={() => {
-                                                            setDeleteId(debt.id);
-                                                            setDeleteType("debt");
-                                                        }}
-                                                        className="p-1.5 bg-white/50 dark:bg-black/20 hover:bg-white dark:hover:bg-black/40 rounded-lg transition-colors text-red-500"
-                                                        title={t("common.delete")}
-                                                    >
-                                                        <FaTrash size={14} />
-                                                    </button>
-                                                </div>
                                             </div>
                                         </div>
                                     </div>

@@ -6,7 +6,7 @@ import { useTheme } from "@/context/ThemeContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { collection, query, where, onSnapshot, deleteDoc, doc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { FaPlus, FaCreditCard, FaMoneyBillWave, FaUserFriends, FaQuestionCircle, FaTrash, FaArrowLeft, FaCheck, FaChevronDown, FaChevronUp } from "react-icons/fa";
+import { FaPlus, FaCreditCard, FaMoneyBillWave, FaUserFriends, FaQuestionCircle, FaTrash, FaArrowLeft, FaCheck, FaChevronDown, FaChevronUp, FaEdit } from "react-icons/fa";
 import Link from "next/link";
 import Loader from "@/components/Loader";
 import { formatCurrency } from "@/lib/utils";
@@ -44,11 +44,16 @@ export default function DebtsPage() {
     const [loading, setLoading] = useState(true);
     const [deleteId, setDeleteId] = useState<string | null>(null);
     const [expandedId, setExpandedId] = useState<string | null>(null);
+    const [mounted, setMounted] = useState(false);
 
     // Date Filter State
     const [selectedDate, setSelectedDate] = useState(new Date());
 
-    const months = t("debtsPage.months") as unknown as string[];
+    const months = t("debtsPage.months") as string[];
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     const handleMonthSelect = (index: number) => {
         const newDate = new Date(selectedDate);
@@ -243,7 +248,7 @@ export default function DebtsPage() {
     const maskCurrency = (val: number) => privacyMode ? "***" : formatCurrency(val);
     const maskDate = (date: Date) => privacyMode ? "**/**/****" : date.toLocaleDateString("tr-TR");
 
-    if (loading) return <Loader />;
+    if (!mounted || loading) return <Loader />;
 
     return (
         <div className="space-y-8">
@@ -403,7 +408,7 @@ export default function DebtsPage() {
 
                                     {/* Installment Checkbox or Delete Button */}
                                     <div className="mt-2 flex items-center gap-2">
-                                        {debt.isMonthlyInstallment ? (
+                                        {debt.isMonthlyInstallment && (
                                             <label className="relative flex items-center cursor-pointer">
                                                 <input
                                                     type="checkbox"
@@ -427,17 +432,24 @@ export default function DebtsPage() {
                                                     )}
                                                 </div>
                                             </label>
-                                        ) : (
-                                            <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0">
-                                                <button
-                                                    onClick={() => setDeleteId(debt.id)}
-                                                    className="p-1.5 bg-white/50 dark:bg-black/20 hover:bg-white dark:hover:bg-black/40 rounded-lg transition-colors text-red-500"
-                                                    title={t("common.delete")}
-                                                >
-                                                    <FaTrash size={14} />
-                                                </button>
-                                            </div>
                                         )}
+
+                                        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0">
+                                            <Link
+                                                href={`/portfolio/debt/${debt.id}`}
+                                                className="p-1.5 bg-white/50 dark:bg-black/20 hover:bg-white dark:hover:bg-black/40 rounded-lg transition-colors text-blue-500"
+                                                title={t("common.edit")}
+                                            >
+                                                <FaEdit size={14} />
+                                            </Link>
+                                            <button
+                                                onClick={() => setDeleteId(debt.id)}
+                                                className="p-1.5 bg-white/50 dark:bg-black/20 hover:bg-white dark:hover:bg-black/40 rounded-lg transition-colors text-red-500"
+                                                title={t("common.delete")}
+                                            >
+                                                <FaTrash size={14} />
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

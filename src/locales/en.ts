@@ -124,6 +124,26 @@ export const en = {
         goalTitle: "Financial Freedom Goal",
         goalPlaceholder: "Target Amount (TL)"
     },
+    assetsPage: {
+        title: "My Assets",
+        addAsset: "Add Asset",
+        totalWealth: "Total Wealth",
+        update: "Update",
+        noAssets: "No assets added yet.",
+        addFirstAsset: "Add First Asset",
+        deleteAsset: "Delete Asset",
+        deleteConfirm: "Are you sure you want to delete this asset from your portfolio?",
+        types: {
+            tl: "Turkish Lira",
+            gold: "Gold",
+            stock: "Stock",
+            crypto: "Crypto",
+            bes: "Private Pension",
+            real_estate: "Real Estate",
+            vehicle: "Vehicle",
+            other: "Other"
+        }
+    },
     debtsPage: {
         title: "My Debts",
         addDebt: "Add Debt",
